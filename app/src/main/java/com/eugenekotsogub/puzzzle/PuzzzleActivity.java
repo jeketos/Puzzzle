@@ -28,20 +28,77 @@ public class PuzzzleActivity extends AppCompatActivity {
             if (view instanceof CellView){
                 CellView v = (CellView)view;
                 if(canMove(v)) {
-                    Coordinate free = GameView.INSTANCE.getFreeCoordinate();
-                    int freeRow = free.row;
-                    int freeColumn = free.column;
-                    Coordinate current = v.getCurrentCoordinate();
-                    move(v, free.row, free.column);
-                    GameView.INSTANCE.setFreeCoordinate(current);
-                    v.setCurrentCoordinate(freeRow, freeColumn);
-                    if (isPazzleDone()) {
-                        Toast.makeText(PuzzzleActivity.this, "Ай да молодец! Выиграл!", Toast.LENGTH_SHORT).show();
-                    }
+                    doMove(v);
                 }
             }
         }
     };
+
+    private void doMove(CellView v) {
+        Coordinate free = GameView.INSTANCE.getFreeCoordinate();
+        int freeRow = free.row;
+        int freeColumn = free.column;
+        Coordinate current = v.getCurrentCoordinate();
+        move(v, free.row, free.column);
+        GameView.INSTANCE.setFreeCoordinate(current);
+        v.setCurrentCoordinate(freeRow, freeColumn);
+        if (isPazzleDone()) {
+            Toast.makeText(PuzzzleActivity.this, "Ай да молодец! Выиграл!", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private OnSwipeTouchListener swipeListener = new OnSwipeTouchListener(getBaseContext()){
+
+        @Override
+        public void onSwipeRight(View view) {
+            if(view instanceof CellView){
+                int row = ((CellView) view).getCurrentCoordinate().row;
+                int column = ((CellView) view).getCurrentCoordinate().column + 1;
+                if(canMoveSwipe(row,column)){
+                    doMove(((CellView)view));
+                }
+            }
+        }
+
+        @Override
+        public void onSwipeLeft(View view) {
+            if(view instanceof CellView){
+                int row = ((CellView) view).getCurrentCoordinate().row;
+                int column = ((CellView) view).getCurrentCoordinate().column - 1;
+                if(canMoveSwipe(row,column)){
+                    doMove(((CellView)view));
+                }
+            }
+        }
+
+        @Override
+        public void onSwipeTop(View view) {
+            if(view instanceof CellView){
+                int row = ((CellView) view).getCurrentCoordinate().row - 1;
+                int column = ((CellView) view).getCurrentCoordinate().column;
+                if(canMoveSwipe(row,column)){
+                    doMove(((CellView)view));
+                }
+            }
+        }
+
+        @Override
+        public void onSwipeBottom(View view) {
+            if(view instanceof CellView){
+                int row = ((CellView) view).getCurrentCoordinate().row + 1;
+                int column = ((CellView) view).getCurrentCoordinate().column;
+                if(canMoveSwipe(row,column)){
+                    doMove(((CellView)view));
+                }
+            }
+        }
+    };
+
+    private boolean canMoveSwipe(int row, int column) {
+        int freeRow = GameView.INSTANCE.getFreeCoordinate().row;
+        int freeColumn = GameView.INSTANCE.getFreeCoordinate().column;
+        return row == freeRow && column == freeColumn;
+    }
 
     private boolean canMove(CellView view) {
         int row  = view.getCurrentCoordinate().row;
@@ -98,6 +155,7 @@ public class PuzzzleActivity extends AppCompatActivity {
         layout.setRowCount(rowCount);
         for (CellView view : cells) {
             view.setOnClickListener(clickListener);
+            view.setOnTouchListener(swipeListener);
             GridLayout.LayoutParams p= new GridLayout.LayoutParams();
             p.setMargins(10,10,10,10);
             int column = view.getAnchorCoordinate().column;
