@@ -22,30 +22,6 @@ public class PuzzzleActivity extends AppCompatActivity {
     ViewGroup mainContainer;
     List<CellView> cells;
     int columnCount = 4, rowCount = 4;
-    private View.OnClickListener clickListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View view) {
-            if (view instanceof CellView){
-                CellView v = (CellView)view;
-                if(canMove(v)) {
-                    doMove(v);
-                }
-            }
-        }
-    };
-
-    private void doMove(CellView v) {
-        Coordinate free = GameView.INSTANCE.getFreeCoordinate();
-        int freeRow = free.row;
-        int freeColumn = free.column;
-        Coordinate current = v.getCurrentCoordinate();
-        move(v, free.row, free.column);
-        GameView.INSTANCE.setFreeCoordinate(current);
-        v.setCurrentCoordinate(freeRow, freeColumn);
-        if (isPazzleDone()) {
-            Toast.makeText(PuzzzleActivity.this, "Ай да молодец! Выиграл!", Toast.LENGTH_SHORT).show();
-        }
-    }
 
     private OnSwipeTouchListener swipeListener = new OnSwipeTouchListener(getBaseContext()){
 
@@ -92,6 +68,16 @@ public class PuzzzleActivity extends AppCompatActivity {
                 }
             }
         }
+
+        @Override
+        void onClick(View view) {
+            if (view instanceof CellView){
+                CellView v = (CellView)view;
+                if(canMove(v)) {
+                    doMove(v);
+                }
+            }
+        }
     };
 
     private boolean canMoveSwipe(int row, int column) {
@@ -122,6 +108,19 @@ public class PuzzzleActivity extends AppCompatActivity {
         return true;
     }
 
+    private void doMove(CellView v) {
+        Coordinate free = GameView.INSTANCE.getFreeCoordinate();
+        int freeRow = free.row;
+        int freeColumn = free.column;
+        Coordinate current = v.getCurrentCoordinate();
+        move(v, free.row, free.column);
+        GameView.INSTANCE.setFreeCoordinate(current);
+        v.setCurrentCoordinate(freeRow, freeColumn);
+        if (isPazzleDone()) {
+            Toast.makeText(PuzzzleActivity.this, "Ай да молодец! Выиграл!", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private boolean isPazzleDone() {
         for(CellView view : cells){
             if(!view.getCurrentCoordinate().equals(view.getAnchorCoordinate())){
@@ -145,7 +144,6 @@ public class PuzzzleActivity extends AppCompatActivity {
     }
 
     private void draw(List<CellView> cells) {
-
         layout = new GridLayout(this);
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(columnCount *220, rowCount *220);
         params.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
@@ -154,20 +152,19 @@ public class PuzzzleActivity extends AppCompatActivity {
         layout.setColumnCount(columnCount);
         layout.setRowCount(rowCount);
         for (CellView view : cells) {
-            view.setOnClickListener(clickListener);
             view.setOnTouchListener(swipeListener);
             GridLayout.LayoutParams p= new GridLayout.LayoutParams();
             p.setMargins(10,10,10,10);
-            int column = view.getAnchorCoordinate().column;
-            int row = view.getAnchorCoordinate().row;
+//            int column = view.getAnchorCoordinate().column;
+//            int row = view.getAnchorCoordinate().row;
             p.columnSpec = GridLayout.spec(view.getCurrentCoordinate().column);
             p.rowSpec = GridLayout.spec(view.getCurrentCoordinate().row);
             view.setLayoutParams(p);
             view.getLayoutParams().height = 200;
             view.getLayoutParams().width = 200;
             view.setGravity(Gravity.CENTER);
-            view.setTextSize(24);//            view.setText(Integer.toString(column*columnCount + row + 1));
-
+            view.setTextSize(24);
+//            view.setText(Integer.toString(column*columnCount + row + 1));
             view.setBackgroundColor(ContextCompat.getColor(this,R.color.colorPrimary));
             layout.addView(view);
         }
