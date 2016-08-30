@@ -1,5 +1,6 @@
 package com.eugenekotsogub.puzzzle;
 
+import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -14,9 +15,12 @@ import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import java.util.List;
+import java.util.Random;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import rx.Observable;
+import rx.android.schedulers.AndroidSchedulers;
 import timber.log.Timber;
 
 public class PuzzzleActivity extends AppCompatActivity {
@@ -27,6 +31,9 @@ public class PuzzzleActivity extends AppCompatActivity {
     int columnCount = 3, rowCount = 3;
     private GridLayout layout;
     private int size;
+    int[] neighbour = {-1,1};
+    boolean[] randomBool = {true, false};
+    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +49,11 @@ public class PuzzzleActivity extends AppCompatActivity {
         cells = CellsFabric.create(this, columnCount, rowCount);
         GameView.INSTANCE.createEmptyCoordinate(columnCount - 1, rowCount - 1);
         draw(cells);
+        showProgressDialog();
+        Observable.fromCallable(this::shuffle)
+//                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(q -> hideProgressDialog(), error -> hideProgressDialog());
     }
 
     @Override
@@ -74,6 +86,11 @@ public class PuzzzleActivity extends AppCompatActivity {
         }
         item.setChecked(true);
         createGame();
+        showProgressDialog();
+        Observable.fromCallable(this::shuffle)
+//                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(q -> hideProgressDialog(), error -> hideProgressDialog());
         return super.onOptionsItemSelected(item);
     }
 
@@ -197,15 +214,13 @@ public class PuzzzleActivity extends AppCompatActivity {
             view.setOnTouchListener(swipeListener);
             GridLayout.LayoutParams p= new GridLayout.LayoutParams();
             p.setMargins(10,10,10,10);
-//            int column = view.getAnchorCoordinate().column;
-//            int row = view.getAnchorCoordinate().row;
             p.columnSpec = GridLayout.spec(view.getCurrentCoordinate().column);
             p.rowSpec = GridLayout.spec(view.getCurrentCoordinate().row);
             view.setLayoutParams(p);
             view.getLayoutParams().height = size/rowCount - 20;
             view.getLayoutParams().width = size/columnCount - 20;
             view.setGravity(Gravity.CENTER);
-            view.setTextSize((size/rowCount - 20)/10);
+            view.setTextSize((size/rowCount - 20)/5);
 //            view.setText(Integer.toString(column*columnCount + row + 1));
             view.setBackgroundColor(ContextCompat.getColor(this,R.color.colorPrimary));
             layout.addView(view);
@@ -224,5 +239,43 @@ public class PuzzzleActivity extends AppCompatActivity {
     public void getSizes() {
         DisplayMetrics dm = getResources().getDisplayMetrics();
         size = dm.widthPixels - 2*getResources().getDimensionPixelSize(R.dimen.activity_horizontal_margin);
+    }
+
+    private Object shuffle(){
+        Random random = new Random();
+        for(int i = 0; i < 1000 * rowCount; i++){
+            int row = GameView.INSTANCE.getFreeCoordinate().row;
+            int column = GameView.INSTANCE.getFreeCoordinate().column;
+            if(randomBool[random.nextInt(2)]) {
+                row += neighbour[random.nextInt(2)];
+            } else {
+                column += neighbour[random.nextInt(2)];
+            }
+            if(0<=row && row < rowCount && 0 <= column && column < columnCount ) {
+                try {
+                    CellView view = (CellView) layout.getChildAt(row * rowCount + column);
+                    doMove(view);
+                } catch (Exception ex){
+//                    Log.d("ddd","shuffle: row - " + row + " column - " + column);
+////                    ex.printStackTrace();
+                }
+            }
+        }
+        return null;
+    }
+
+    public void showProgressDialog(){
+        if(progressDialog == null) {
+            progressDialog = Utils.showProgress(this, false, null);
+        }
+        if(!progressDialog.isShowing()){
+            progressDialog.show();
+        }
+    }
+
+    public void hideProgressDialog(){
+        if (progressDialog != null) {
+                progressDialog.dismiss();
+        }
     }
 }

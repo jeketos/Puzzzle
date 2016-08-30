@@ -24,13 +24,10 @@ public class CellsFabric {
 
                 }
                 CellView cellView = new CellView(context);
-                cellView.setAnchorCoordiates(i,j);
                 String text = "" + (i*row + j + 1);// user friendly number
-
-
-
                 cellView.setText(text);
 //                cellView.setCurrentCoordinate(shuffled.get(i*column +j));
+                cellView.setAnchorCoordiates(i,j);
                 cellView.setCurrentCoordinate(i,j);
                 cells.add(cellView);
             }
@@ -54,5 +51,4 @@ public class CellsFabric {
         Collections.shuffle(shuffled);
         return shuffled;
     }
-
 }
