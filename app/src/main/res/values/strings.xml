@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Puzzzle</string>
+    <string name="field_size">Размеры поля</string>
+    <string name="x3x3">3x3</string>
+    <string name="x4x4">4x4</string>
+    <string name="x5x5">5x5</string>
+    <string name="x6x6">6x6</string>
 </resources>

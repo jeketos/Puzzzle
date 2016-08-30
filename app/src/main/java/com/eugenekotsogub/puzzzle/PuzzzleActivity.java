@@ -3,7 +3,10 @@ package com.eugenekotsogub.puzzzle;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.DisplayMetrics;
 import android.view.Gravity;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.GridLayout;
@@ -21,7 +24,58 @@ public class PuzzzleActivity extends AppCompatActivity {
     @BindView(R.id.main_container)
     ViewGroup mainContainer;
     List<CellView> cells;
-    int columnCount = 4, rowCount = 4;
+    int columnCount = 3, rowCount = 3;
+    private GridLayout layout;
+    private int size;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_puzzzle);
+        ButterKnife.bind(this);
+        getSizes();
+        createGame();
+        Timber.d("onCreate: ");
+    }
+
+    private void createGame() {
+        cells = CellsFabric.create(this, columnCount, rowCount);
+        GameView.INSTANCE.createEmptyCoordinate(columnCount - 1, rowCount - 1);
+        draw(cells);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.puzzle_menu,menu);
+        MenuItem item = menu.findItem(R.id.x3x3);
+        item.setChecked(true);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.x3x3:
+                columnCount = 3;
+                rowCount = 3;
+                break;
+            case R.id.x4x4:
+                columnCount = 4;
+                rowCount = 4;
+                break;
+            case R.id.x5x5:
+                columnCount = 5;
+                rowCount = 5;
+                break;
+            case R.id.x6x6:
+                columnCount = 6;
+                rowCount = 6;
+                break;
+        }
+        item.setChecked(true);
+        createGame();
+        return super.onOptionsItemSelected(item);
+    }
 
     private OnSwipeTouchListener swipeListener = new OnSwipeTouchListener(getBaseContext()){
 
@@ -130,22 +184,10 @@ public class PuzzzleActivity extends AppCompatActivity {
         return true;
     }
 
-    private GridLayout layout;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_puzzzle);
-        ButterKnife.bind(this);
-        cells = CellsFabric.create(this, columnCount, rowCount);
-        GameView.INSTANCE.createEmptyCoordinate(columnCount - 1, rowCount - 1);
-        draw(cells);
-        Timber.d("onCreate: ");
-    }
 
     private void draw(List<CellView> cells) {
         layout = new GridLayout(this);
-        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(columnCount *220, rowCount *220);
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(size, size);
         params.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
         layout.setLayoutParams(params);
         layout.setBackgroundColor(ContextCompat.getColor(this, R.color.colorAccent));
@@ -160,10 +202,10 @@ public class PuzzzleActivity extends AppCompatActivity {
             p.columnSpec = GridLayout.spec(view.getCurrentCoordinate().column);
             p.rowSpec = GridLayout.spec(view.getCurrentCoordinate().row);
             view.setLayoutParams(p);
-            view.getLayoutParams().height = 200;
-            view.getLayoutParams().width = 200;
+            view.getLayoutParams().height = size/rowCount - 20;
+            view.getLayoutParams().width = size/columnCount - 20;
             view.setGravity(Gravity.CENTER);
-            view.setTextSize(24);
+            view.setTextSize((size/rowCount - 20)/10);
 //            view.setText(Integer.toString(column*columnCount + row + 1));
             view.setBackgroundColor(ContextCompat.getColor(this,R.color.colorPrimary));
             layout.addView(view);
@@ -179,4 +221,8 @@ public class PuzzzleActivity extends AppCompatActivity {
         layout.addView(view);
     }
 
+    public void getSizes() {
+        DisplayMetrics dm = getResources().getDisplayMetrics();
+        size = dm.widthPixels - 2*getResources().getDimensionPixelSize(R.dimen.activity_horizontal_margin);
+    }
 }
