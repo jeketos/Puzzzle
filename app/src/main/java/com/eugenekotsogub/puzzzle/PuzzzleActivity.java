@@ -14,46 +14,56 @@ import android.widget.GridLayout;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import com.crashlytics.android.Crashlytics;
+
 import java.util.List;
-import java.util.Random;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import io.fabric.sdk.android.Fabric;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
-import timber.log.Timber;
+import rx.schedulers.Schedulers;
 
 public class PuzzzleActivity extends AppCompatActivity {
 
     @BindView(R.id.main_container)
     ViewGroup mainContainer;
     List<CellView> cells;
+//    CellView[][] cellViews;
     int columnCount = 3, rowCount = 3;
     private GridLayout layout;
     private int size;
-    int[] neighbour = {-1,1};
-    boolean[] randomBool = {true, false};
     private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Fabric.with(this, new Crashlytics());
         setContentView(R.layout.activity_puzzzle);
         ButterKnife.bind(this);
         getSizes();
-        createGame();
-        Timber.d("onCreate: ");
+        init();
     }
 
-    private void createGame() {
-        cells = CellsFabric.create(this, columnCount, rowCount);
-        GameView.INSTANCE.createEmptyCoordinate(columnCount - 1, rowCount - 1);
-        draw(cells);
+    private void init() {
         showProgressDialog();
-        Observable.fromCallable(this::shuffle)
-//                .subscribeOn(Schedulers.io())
+        Observable.fromCallable(this::createGame)
+                .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(q -> hideProgressDialog(), error -> hideProgressDialog());
+                .subscribe(coordinates -> {
+                    cells = CellsFabric.create(this, coordinates, columnCount, rowCount);
+                    draw(cells);
+                    hideProgressDialog();
+                }, error -> {
+                    hideProgressDialog();
+                    error.printStackTrace();
+                });
+    }
+
+    private List<Coordinate> createGame() {
+        GameView.INSTANCE.createGameBoard(rowCount,columnCount);
+        return GameView.INSTANCE.shuffle();
     }
 
     @Override
@@ -85,12 +95,7 @@ public class PuzzzleActivity extends AppCompatActivity {
                 break;
         }
         item.setChecked(true);
-        createGame();
-        showProgressDialog();
-        Observable.fromCallable(this::shuffle)
-//                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(q -> hideProgressDialog(), error -> hideProgressDialog());
+        init();
         return super.onOptionsItemSelected(item);
     }
 
@@ -239,29 +244,6 @@ public class PuzzzleActivity extends AppCompatActivity {
     public void getSizes() {
         DisplayMetrics dm = getResources().getDisplayMetrics();
         size = dm.widthPixels - 2*getResources().getDimensionPixelSize(R.dimen.activity_horizontal_margin);
-    }
-
-    private Object shuffle(){
-        Random random = new Random();
-        for(int i = 0; i < 1000 * rowCount; i++){
-            int row = GameView.INSTANCE.getFreeCoordinate().row;
-            int column = GameView.INSTANCE.getFreeCoordinate().column;
-            if(randomBool[random.nextInt(2)]) {
-                row += neighbour[random.nextInt(2)];
-            } else {
-                column += neighbour[random.nextInt(2)];
-            }
-            if(0<=row && row < rowCount && 0 <= column && column < columnCount ) {
-                try {
-                    CellView view = (CellView) layout.getChildAt(row * rowCount + column);
-                    doMove(view);
-                } catch (Exception ex){
-//                    Log.d("ddd","shuffle: row - " + row + " column - " + column);
-////                    ex.printStackTrace();
-                }
-            }
-        }
-        return null;
     }
 
     public void showProgressDialog(){

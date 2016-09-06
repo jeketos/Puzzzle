@@ -3,7 +3,6 @@ package com.eugenekotsogub.puzzzle;
 import android.content.Context;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -13,42 +12,23 @@ import java.util.List;
 public class CellsFabric {
 
 
-    public static List<CellView> create(Context context, int column, int row){
+    public static List<CellView> create(Context context, List<Coordinate> shuffled, int column, int row){
         List<CellView> cells = new ArrayList<>();
-        List<Coordinate> shuffled = createShuffledCoordinates(column,row);
-
         for (int i = 0; i < row; i++) {
             for (int j = 0; j < column; j++) {
-                if(i*row + j == column*row - 1){
-                    break;
-
+                Coordinate coordinate = shuffled.get(i*row + j);
+                if(!(coordinate.row == row -1 && coordinate.column == column - 1)){
+                    CellView cellView = new CellView(context);
+                    String text = "" + (coordinate.row*row + coordinate.column + 1);// user friendly number
+                    cellView.setText(text);
+                    cellView.setAnchorCoordiates(coordinate);
+                    cellView.setCurrentCoordinate(i,j);
+                    cells.add(cellView);
                 }
-                CellView cellView = new CellView(context);
-                String text = "" + (i*row + j + 1);// user friendly number
-                cellView.setText(text);
-//                cellView.setCurrentCoordinate(shuffled.get(i*column +j));
-                cellView.setAnchorCoordiates(i,j);
-                cellView.setCurrentCoordinate(i,j);
-                cells.add(cellView);
             }
         }
         return cells;
     }
 
-    private static List<Coordinate> createShuffledCoordinates(int column, int row) {
-        List<Coordinate> shuffled = new ArrayList<>(column*row -1);
-        for (int i = 0; i < row; i++) {
-            for (int j = 0; j < column; j++) {
-                if(i*row + j == column*row - 1){
-                    break;
-                }
-                Coordinate coordinate = new Coordinate();
-                coordinate.column = j;
-                coordinate.row = i;
-                shuffled.add(coordinate);
-            }
-        }
-        Collections.shuffle(shuffled);
-        return shuffled;
-    }
+
 }
