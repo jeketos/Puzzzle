@@ -56,6 +56,7 @@ public enum  GameView {
                     int bufFreeRow = freeCoordinate.row;
                     int bufFreeColumn = freeCoordinate.column;
                     freeCoordinate.row = row;
+
                     freeCoordinate.column = column;
                     Collections.swap(gameBoard, bufFreeRow * rowCount + bufFreeColumn, freeCoordinate.row * rowCount + freeCoordinate.column);
             }
@@ -63,3 +64,4 @@ public enum  GameView {
         return gameBoard;
     }
 }
+

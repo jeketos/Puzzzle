@@ -235,10 +235,14 @@ public class PuzzzleActivity extends AppCompatActivity {
     }
 
     public void move(View view, int row, int column){
-        layout.removeView(view);
-        ((GridLayout.LayoutParams)view.getLayoutParams()).columnSpec = GridLayout.spec(column);
-        ((GridLayout.LayoutParams)view.getLayoutParams()).rowSpec = GridLayout.spec(row);
-        layout.addView(view);
+        try {
+            layout.removeView(view);
+            ((GridLayout.LayoutParams) view.getLayoutParams()).columnSpec = GridLayout.spec(column);
+            ((GridLayout.LayoutParams) view.getLayoutParams()).rowSpec = GridLayout.spec(row);
+            layout.addView(view);
+        } catch (IllegalStateException ex){
+            ex.printStackTrace();
+        }
     }
 
     public void getSizes() {
