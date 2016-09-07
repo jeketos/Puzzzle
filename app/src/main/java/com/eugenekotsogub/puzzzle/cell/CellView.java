@@ -1,10 +1,12 @@
-package com.eugenekotsogub.puzzzle;
+package com.eugenekotsogub.puzzzle.cell;
 
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 import android.util.AttributeSet;
 import android.widget.TextView;
+
+import com.eugenekotsogub.puzzzle.Coordinate;
 
 /**
  * Created by eugene.kotsogub on 8/26/16.

@@ -15,6 +15,8 @@ import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
+import com.eugenekotsogub.puzzzle.cell.CellView;
+import com.eugenekotsogub.puzzzle.cell.CellsFabric;
 
 import java.util.List;
 
@@ -30,7 +32,6 @@ public class PuzzzleActivity extends AppCompatActivity {
     @BindView(R.id.main_container)
     ViewGroup mainContainer;
     List<CellView> cells;
-//    CellView[][] cellViews;
     int columnCount = 3, rowCount = 3;
     private GridLayout layout;
     private int size;
@@ -42,7 +43,7 @@ public class PuzzzleActivity extends AppCompatActivity {
         Fabric.with(this, new Crashlytics());
         setContentView(R.layout.activity_puzzzle);
         ButterKnife.bind(this);
-        getSizes();
+        size = getBoardWidth();
         init();
     }
 
@@ -61,6 +62,7 @@ public class PuzzzleActivity extends AppCompatActivity {
                 });
     }
 
+    //return shuffled coordinates
     private List<Coordinate> createGame() {
         GameView.INSTANCE.createGameBoard(rowCount,columnCount);
         return GameView.INSTANCE.shuffle();
@@ -227,7 +229,7 @@ public class PuzzzleActivity extends AppCompatActivity {
             view.setGravity(Gravity.CENTER);
             view.setTextSize((size/rowCount - 20)/5);
 //            view.setText(Integer.toString(column*columnCount + row + 1));
-            view.setBackgroundColor(ContextCompat.getColor(this,R.color.colorPrimary));
+//            view.setBackgroundColor(ContextCompat.getColor(this,R.color.colorPrimary));
             layout.addView(view);
         }
 
@@ -242,12 +244,13 @@ public class PuzzzleActivity extends AppCompatActivity {
             layout.addView(view);
         } catch (IllegalStateException ex){
             ex.printStackTrace();
+            draw(cells);
         }
     }
 
-    public void getSizes() {
+    public int getBoardWidth() {
         DisplayMetrics dm = getResources().getDisplayMetrics();
-        size = dm.widthPixels - 2*getResources().getDimensionPixelSize(R.dimen.activity_horizontal_margin);
+        return dm.widthPixels - 2*getResources().getDimensionPixelSize(R.dimen.activity_horizontal_margin);
     }
 
     public void showProgressDialog(){
