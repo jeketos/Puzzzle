@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
+import android.text.TextUtils;
 
 import com.eugenekotsogub.puzzzle.Coordinate;
 import com.eugenekotsogub.puzzzle.R;
@@ -18,9 +19,9 @@ import java.util.List;
 public class CellsFabric {
 
 
-    public static List<CellView> create(Context context, List<Coordinate> shuffled, int column, int row){
+    public static List<CellView> create(Context context, String imagePath, List<Coordinate> shuffled, int column, int row){
         List<CellView> cells = new ArrayList<>();
-        List<Bitmap> imageTiles = getImageTiles(context,column,row);
+        List<Bitmap> imageTiles = getImageTiles(context, imagePath, column, row);
         for (int i = 0; i < row; i++) {
             for (int j = 0; j < column; j++) {
                 Coordinate coordinate = shuffled.get(i*row + j);
@@ -38,9 +39,14 @@ public class CellsFabric {
         return cells;
     }
 
-    public static List<Bitmap> getImageTiles(Context context,int column, int row){
+    public static List<Bitmap> getImageTiles(Context context, String imagePath, int column, int row){
         List<Bitmap> list = new ArrayList<>();
-        Bitmap image = BitmapFactory.decodeResource(context.getResources(), R.drawable.cat);
+        Bitmap image;
+        if (TextUtils.isEmpty(imagePath)){
+            image = BitmapFactory.decodeResource(context.getResources(), R.drawable.cat);
+        } else {
+            image = BitmapFactory.decodeFile(imagePath);
+        }
 //        int tilesSize = column*row;
         int tileWidth = image.getWidth()/column;
         int tileHeight = image.getHeight()/row;

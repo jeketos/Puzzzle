@@ -1,8 +1,15 @@
 package com.eugenekotsogub.puzzzle;
 
+import android.Manifest;
+import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
@@ -17,7 +24,11 @@ import android.widget.Toast;
 import com.crashlytics.android.Crashlytics;
 import com.eugenekotsogub.puzzzle.cell.CellView;
 import com.eugenekotsogub.puzzzle.cell.CellsFabric;
+import com.eugenekotsogub.puzzzle.util.ImageUtils;
+import com.eugenekotsogub.puzzzle.util.Permission;
+import com.eugenekotsogub.puzzzle.util.Utils;
 
+import java.io.File;
 import java.util.List;
 
 import butterknife.BindView;
@@ -29,6 +40,8 @@ import rx.schedulers.Schedulers;
 
 public class PuzzzleActivity extends AppCompatActivity {
 
+    private static final int REQUEST_CAMERA = 20;
+    private static final int REQUEST_GALLERY = 21;
     @BindView(R.id.main_container)
     ViewGroup mainContainer;
     List<CellView> cells;
@@ -36,6 +49,8 @@ public class PuzzzleActivity extends AppCompatActivity {
     private GridLayout layout;
     private int size;
     private ProgressDialog progressDialog;
+    private String toCameraPath;
+    private String photoPath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,7 +68,7 @@ public class PuzzzleActivity extends AppCompatActivity {
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(coordinates -> {
-                    cells = CellsFabric.create(this, coordinates, columnCount, rowCount);
+                    cells = CellsFabric.create(this, photoPath, coordinates, columnCount, rowCount);
                     draw(cells);
                     hideProgressDialog();
                 }, error -> {
@@ -95,6 +110,9 @@ public class PuzzzleActivity extends AppCompatActivity {
                 columnCount = 6;
                 rowCount = 6;
                 break;
+            case R.id.add_image:
+                toGetPhotoDialog();
+                return super.onOptionsItemSelected(item);
         }
         item.setChecked(true);
         init();
@@ -265,6 +283,89 @@ public class PuzzzleActivity extends AppCompatActivity {
     public void hideProgressDialog(){
         if (progressDialog != null) {
                 progressDialog.dismiss();
+        }
+    }
+
+    public void toGetPhotoDialog(){
+        final CharSequence[] items = { getString(R.string.take_photo), getString(R.string.from_gallery) };
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.photo_dialog_title);
+        builder.setItems(items, (dialog, item) -> {
+            if (item == 0) {
+//                isCameraRequest = true;
+                if(Permission.isGranted(this,Permission.REQUEST_CAMERA, Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE )) {
+                    //noinspection MissingPermission
+                    toCameraPath = ImageUtils.takePhoto(this,REQUEST_CAMERA);
+//                    isCameraRequest = false;
+                }
+            }
+            else if (item == 1) {
+                if(Permission.isGranted(this, Permission.REQUEST_READ_EXTERNAL_STORAGE,
+                        Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                    //noinspection MissingPermission
+                    ImageUtils.getPhoto(this,REQUEST_GALLERY);
+                }
+            }
+        });
+        builder.show();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case Permission.REQUEST_CAMERA:
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                        //noinspection MissingPermission
+                        toCameraPath = ImageUtils.takePhoto(this,REQUEST_CAMERA);
+                } else {
+                    showToast("Доступ к камере запрещен");
+                }
+                break;
+//            case Permission.REQUEST_CAMERA_WRITE:
+//                if (grantResults.length > 0
+//                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//                        boolean b = Permission.isGranted(this, Manifest.permission.CAMERA, Permission.REQUEST_CAMERA);
+//                        Log.d("NewAdvertFragment", "storage granted -" + b);
+//                }else {
+//                    showToast("Доступ к записи во внутренний накопитель запрещен");
+//                }
+//                break;
+            case Permission.REQUEST_READ_EXTERNAL_STORAGE:
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    //noinspection MissingPermission
+                    ImageUtils.getPhoto(this,REQUEST_GALLERY);
+                }else {
+                    showToast("Доступ к чтению из внутреннего накопителя запрещен");
+                }
+                break;
+        }
+    }
+
+    private void showToast(String text) {
+        Toast.makeText(this,text,Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CAMERA && resultCode == Activity.RESULT_OK){
+            Observable.fromCallable(() -> ImageUtils.getImageFile(this, Uri.fromFile(new File(toCameraPath))))
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(s -> {
+                        photoPath = s;
+                        init();
+                    }, Throwable::printStackTrace);
+        } else if (requestCode == REQUEST_GALLERY && resultCode == Activity.RESULT_OK){
+            Observable.fromCallable(() -> ImageUtils.getImageFile(this,data.getData()))
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(s -> {
+                        photoPath = s;
+                        if (photoPath != null) init();
+                    }, Throwable::printStackTrace);
         }
     }
 }

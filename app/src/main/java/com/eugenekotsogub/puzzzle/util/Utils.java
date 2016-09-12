@@ -1,9 +1,11 @@
-package com.eugenekotsogub.puzzzle;
+package com.eugenekotsogub.puzzzle.util;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.graphics.drawable.ColorDrawable;
+
+import com.eugenekotsogub.puzzzle.R;
 
 /**
  * Created by eugene.kotsogub on 8/30/16.

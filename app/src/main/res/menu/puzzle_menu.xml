@@ -4,7 +4,9 @@
     >
     <item android:title="@string/field_size"
           android:enabled="false"/>
-    <group android:checkableBehavior="single">
+    <group
+        android:id="@+id/field_size"
+        android:checkableBehavior="single">
         <item android:title="@string/x3x3"
               android:id="@+id/x3x3"/>
         <item android:title="@string/x4x4"
@@ -14,5 +16,7 @@
         <item android:title="@string/x6x6"
               android:id="@+id/x6x6"/>
     </group>
+    <item android:title="@string/add_image"
+          android:id="@+id/add_image"/>
 
 </menu>
