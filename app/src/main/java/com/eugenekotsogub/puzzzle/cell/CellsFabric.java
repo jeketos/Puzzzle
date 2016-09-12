@@ -18,6 +18,7 @@ import java.util.List;
  */
 public class CellsFabric {
 
+    public static CellView lastTile;
 
     public static List<CellView> create(Context context, String imagePath, List<Coordinate> shuffled, int column, int row){
         List<CellView> cells = new ArrayList<>();
@@ -33,6 +34,12 @@ public class CellsFabric {
                     cellView.setAnchorCoordiates(coordinate);
                     cellView.setCurrentCoordinate(i,j);
                     cells.add(cellView);
+                } else {
+                    CellView cellView = new CellView(context);
+                    cellView.setBackgroundDrawable(new BitmapDrawable(imageTiles.get(coordinate.row*row + coordinate.column )));
+                    cellView.setAnchorCoordiates(coordinate);
+                    cellView.setCurrentCoordinate(i,j);
+                    lastTile = cellView;
                 }
             }
         }

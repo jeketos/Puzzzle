@@ -1,6 +1,8 @@
 package com.eugenekotsogub.puzzzle;
 
 import android.Manifest;
+import android.animation.Animator;
+import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -8,7 +10,6 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
@@ -51,6 +52,7 @@ public class PuzzzleActivity extends AppCompatActivity {
     private ProgressDialog progressDialog;
     private String toCameraPath;
     private String photoPath;
+    public static  int ITEM_MARGIN = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -213,6 +215,8 @@ public class PuzzzleActivity extends AppCompatActivity {
         GameView.INSTANCE.setFreeCoordinate(current);
         v.setCurrentCoordinate(freeRow, freeColumn);
         if (isPazzleDone()) {
+            clearViewTouch(layout);
+            animateMargin(layout);
             Toast.makeText(PuzzzleActivity.this, "Ай да молодец! Выиграл!", Toast.LENGTH_SHORT).show();
         }
     }
@@ -228,24 +232,19 @@ public class PuzzzleActivity extends AppCompatActivity {
 
 
     private void draw(List<CellView> cells) {
-        layout = new GridLayout(this);
+        if(layout == null) {
+            layout = new GridLayout(this);
+        }
+        layout.removeAllViews();
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(size, size);
         params.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
         layout.setLayoutParams(params);
-        layout.setBackgroundColor(ContextCompat.getColor(this, R.color.colorAccent));
+//        layout.setBackgroundColor(ContextCompat.getColor(this, R.color.colorAccent));
         layout.setColumnCount(columnCount);
         layout.setRowCount(rowCount);
         for (CellView view : cells) {
             view.setOnTouchListener(swipeListener);
-            GridLayout.LayoutParams p= new GridLayout.LayoutParams();
-            p.setMargins(10,10,10,10);
-            p.columnSpec = GridLayout.spec(view.getCurrentCoordinate().column);
-            p.rowSpec = GridLayout.spec(view.getCurrentCoordinate().row);
-            view.setLayoutParams(p);
-            view.getLayoutParams().height = size/rowCount - 20;
-            view.getLayoutParams().width = size/columnCount - 20;
-            view.setGravity(Gravity.CENTER);
-            view.setTextSize((size/rowCount - 20)/5);
+            createLayoutParams(view, false);
 //            view.setText(Integer.toString(column*columnCount + row + 1));
 //            view.setBackgroundColor(ContextCompat.getColor(this,R.color.colorPrimary));
             layout.addView(view);
@@ -254,16 +253,94 @@ public class PuzzzleActivity extends AppCompatActivity {
         mainContainer.addView(layout);
     }
 
+    private void createLayoutParams(CellView view, boolean isAnchor) {
+        GridLayout.LayoutParams p= new GridLayout.LayoutParams();
+        p.setMargins(ITEM_MARGIN,ITEM_MARGIN,ITEM_MARGIN,ITEM_MARGIN);
+        if(isAnchor){
+            p.columnSpec = GridLayout.spec(view.getAnchorCoordinate().column);
+            p.rowSpec = GridLayout.spec(view.getAnchorCoordinate().row);
+        } else {
+            p.columnSpec = GridLayout.spec(view.getCurrentCoordinate().column);
+            p.rowSpec = GridLayout.spec(view.getCurrentCoordinate().row);
+        }
+        view.setLayoutParams(p);
+        view.getLayoutParams().height = size/rowCount - 4;
+        view.getLayoutParams().width = size/columnCount - 4;
+        view.setGravity(Gravity.CENTER);
+        view.setTextSize((size/rowCount - 4)/5);
+    }
+
     public void move(View view, int row, int column){
         try {
-            layout.removeView(view);
+//            layout.removeView(view);
+            GridLayout.LayoutParams params = (GridLayout.LayoutParams) view.getLayoutParams();
             ((GridLayout.LayoutParams) view.getLayoutParams()).columnSpec = GridLayout.spec(column);
             ((GridLayout.LayoutParams) view.getLayoutParams()).rowSpec = GridLayout.spec(row);
-            layout.addView(view);
+            view.setLayoutParams(params);
+//            layout.addView(view);
         } catch (IllegalStateException ex){
             ex.printStackTrace();
             draw(cells);
         }
+    }
+
+    public void clearViewTouch(ViewGroup viewGroup){
+        for (int i = 0; i < viewGroup.getChildCount(); i++) {
+            viewGroup.getChildAt(i).setOnTouchListener(null);
+        }
+    }
+
+    public void animateMargin(ViewGroup viewGroup){
+        createLayoutParams(CellsFabric.lastTile, true);
+        viewGroup.addView(CellsFabric.lastTile);
+        int animValue = 10;
+        ValueAnimator animation = ValueAnimator.ofInt(animValue);
+        animation.setDuration(500);
+        animation.addUpdateListener(valueAnimator -> {
+            for (int i = 0; i < viewGroup.getChildCount(); i++) {
+                View view = viewGroup.getChildAt(i);
+                GridLayout.LayoutParams lp = (GridLayout.LayoutParams) view.getLayoutParams();
+                Integer animatedValue = ITEM_MARGIN + (Integer) animation.getAnimatedValue();
+                lp.setMargins( animatedValue, animatedValue,  animatedValue,  animatedValue);
+                view.setLayoutParams(lp);
+            }
+        });
+        animation.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animator) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animator) {
+
+                int animValue = 10 + ITEM_MARGIN;
+                ValueAnimator animation = ValueAnimator.ofInt(animValue);
+                animation.setDuration(500);
+                animation.addUpdateListener(valueAnimator -> {
+                    for (int i = 0; i < viewGroup.getChildCount(); i++) {
+                        View view = viewGroup.getChildAt(i);
+                        GridLayout.LayoutParams lp = (GridLayout.LayoutParams) view.getLayoutParams();
+                        Integer animatedValue = animValue - (Integer) animation.getAnimatedValue();
+                        lp.setMargins( animatedValue, animatedValue,  animatedValue,  animatedValue);
+                        view.setLayoutParams(lp);
+                    }
+                });
+                animation.start();
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animator) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animator) {
+
+            }
+        });
+        animation.start();
+
     }
 
     public int getBoardWidth() {

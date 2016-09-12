@@ -249,7 +249,7 @@ public class ImageUtils {
         }
         bitmap = Bitmap.createScaledBitmap(bitmap, width, height, false);
         bitmap = getCroppedBitmap(bitmap);
-        
+
         return bitmap;
     }
 
