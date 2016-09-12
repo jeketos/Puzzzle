@@ -367,6 +367,8 @@ public class PuzzzleActivity extends AppCompatActivity {
                     //noinspection MissingPermission
                     toCameraPath = ImageUtils.takePhoto(this,REQUEST_CAMERA);
 //                    isCameraRequest = false;
+                }  else {
+                    showToast(getString(R.string.permission_camera_denied));
                 }
             }
             else if (item == 1) {
@@ -374,6 +376,8 @@ public class PuzzzleActivity extends AppCompatActivity {
                         Manifest.permission.READ_EXTERNAL_STORAGE)) {
                     //noinspection MissingPermission
                     ImageUtils.getPhoto(this,REQUEST_GALLERY);
+                }else {
+                    showToast(getString(R.string.permission_read_denied));
                 }
             }
         });
@@ -389,7 +393,7 @@ public class PuzzzleActivity extends AppCompatActivity {
                         //noinspection MissingPermission
                         toCameraPath = ImageUtils.takePhoto(this,REQUEST_CAMERA);
                 } else {
-                    showToast("Доступ к камере запрещен");
+                    showToast(getString(R.string.permission_camera_denied));
                 }
                 break;
 //            case Permission.REQUEST_CAMERA_WRITE:
@@ -407,7 +411,7 @@ public class PuzzzleActivity extends AppCompatActivity {
                     //noinspection MissingPermission
                     ImageUtils.getPhoto(this,REQUEST_GALLERY);
                 }else {
-                    showToast("Доступ к чтению из внутреннего накопителя запрещен");
+                    showToast(getString(R.string.permission_read_denied));
                 }
                 break;
         }
