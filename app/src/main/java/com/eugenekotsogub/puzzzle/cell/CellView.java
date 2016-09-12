@@ -1,10 +1,12 @@
-package com.eugenekotsogub.puzzzle;
+package com.eugenekotsogub.puzzzle.cell;
 
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 import android.util.AttributeSet;
 import android.widget.TextView;
+
+import com.eugenekotsogub.puzzzle.Coordinate;
 
 /**
  * Created by eugene.kotsogub on 8/26/16.
@@ -14,6 +16,7 @@ public class CellView extends TextView {
 
     public final Coordinate anchorCoordinate = new Coordinate();
     public Coordinate currentCoordinate = new Coordinate();
+    private boolean empty = false;
 
 
     public CellView(Context context) {
@@ -53,5 +56,32 @@ public class CellView extends TextView {
     public void setCurrentCoordinate(int row, int column) {
         this.currentCoordinate.column = column;
         this.currentCoordinate.row = row;
+    }
+
+    public void setAnchorCoordiates(Coordinate coordinate) {
+        this.anchorCoordinate.column = coordinate.column;
+        this.anchorCoordinate.row = coordinate.row;
+    }
+
+    public boolean isEmpty() {
+        return empty;
+    }
+
+    public void setEmpty(boolean empty) {
+        this.empty = empty;
+    }
+
+    public void swapStates(CellView freeView) {
+        int bufRow =    this.currentCoordinate.row;
+        int bufColumn = this.currentCoordinate.column;
+        String bufName = this.getText().toString();
+        this.currentCoordinate.row = freeView.currentCoordinate.row;
+        this.currentCoordinate.column = freeView.currentCoordinate.column;
+        this.setEmpty(true);
+        this.setText(freeView.getText());
+        freeView.currentCoordinate.row = bufRow;
+        freeView.currentCoordinate.column = bufColumn;
+        freeView.setText(bufName);
+        freeView.setEmpty(false);
     }
 }

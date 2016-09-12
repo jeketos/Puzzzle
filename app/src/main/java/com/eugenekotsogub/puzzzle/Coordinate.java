@@ -6,23 +6,38 @@ package com.eugenekotsogub.puzzzle;
  */
 public class Coordinate {
 
-    public int column;
     public int row;
+    public int column;
 
     public Coordinate(){
 
     }
 
     public Coordinate(int column, int row) {
-        this.column = column;
         this.row = row;
+        this.column = column;
+    }
+
+    public void set(int row, int column){
+        this.row = row;
+        this.column = column;
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if(obj instanceof Coordinate){
-            return column == ((Coordinate) obj).column && row == ((Coordinate) obj).row;
-        }
-        return false;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Coordinate that = (Coordinate) o;
+
+        return column == that.column && row == that.row;
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = column;
+        result = 31 * result + row;
+        return result;
     }
 }
