@@ -271,17 +271,10 @@ public class PuzzzleActivity extends AppCompatActivity {
     }
 
     public void move(View view, int row, int column){
-        try {
-//            layout.removeView(view);
-            GridLayout.LayoutParams params = (GridLayout.LayoutParams) view.getLayoutParams();
-            ((GridLayout.LayoutParams) view.getLayoutParams()).columnSpec = GridLayout.spec(column);
-            ((GridLayout.LayoutParams) view.getLayoutParams()).rowSpec = GridLayout.spec(row);
-            view.setLayoutParams(params);
-//            layout.addView(view);
-        } catch (IllegalStateException ex){
-            ex.printStackTrace();
-            draw(cells);
-        }
+        GridLayout.LayoutParams params = (GridLayout.LayoutParams) view.getLayoutParams();
+        ((GridLayout.LayoutParams) view.getLayoutParams()).columnSpec = GridLayout.spec(column);
+        ((GridLayout.LayoutParams) view.getLayoutParams()).rowSpec = GridLayout.spec(row);
+        view.setLayoutParams(params);
     }
 
     public void clearViewTouch(ViewGroup viewGroup){
