@@ -121,7 +121,12 @@ public class PuzzzleActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private OnMoveTouchListener swipeListener = new OnMoveTouchListener();
+    private OnMoveTouchListener swipeListener = new OnMoveTouchListener() {
+        @Override
+        protected void onMoveFinish(CellView view) {
+            doMove(view);
+        }
+    };
 //            new OnSwipeTouchListener(getBaseContext()){
 //
 //        @Override
@@ -213,7 +218,7 @@ public class PuzzzleActivity extends AppCompatActivity {
         int freeRow = free.row;
         int freeColumn = free.column;
         Coordinate current = v.getCurrentCoordinate();
-        move(v, free.row, free.column);
+//        move(v, free.row, free.column);
         GameView.INSTANCE.setFreeCoordinate(current);
         v.setCurrentCoordinate(freeRow, freeColumn);
         if (isPazzleDone()) {
@@ -237,6 +242,7 @@ public class PuzzzleActivity extends AppCompatActivity {
         if(layout == null) {
             layout = new GridLayout(this);
         }
+        mainContainer.removeAllViews();
         layout.removeAllViews();
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(size, size);
         params.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
