@@ -25,23 +25,76 @@ public abstract class OnMoveTouchListener implements View.OnTouchListener {
     public boolean onTouch(View view, MotionEvent event) {
         switch (event.getAction())
         {
+            case MotionEvent.ACTION_DOWN:
+                actionDown(view, event);
+                break;
             case MotionEvent.ACTION_MOVE:
                 actionMove(view, event);
                 break;
             case MotionEvent.ACTION_UP:
                 actionUp(view);
                 break;
-            case MotionEvent.ACTION_DOWN:
-                viewX = view.getX();
-                viewY = view.getY();
-                dX = view.getX() - event.getRawX();
-                dY = view.getY() - event.getRawY();
-                x = viewX;
-                y = viewY;
-                break;
+
         }
         view.invalidate();
         return true;
+    }
+
+    private void actionDown(View view, MotionEvent event) {
+        viewX = view.getX();
+        viewY = view.getY();
+        dX = view.getX() - event.getRawX();
+        dY = view.getY() - event.getRawY();
+        x = viewX;
+        y = viewY;
+    }
+
+    private void actionMove(View view, MotionEvent event) {
+        float x = event.getRawX() + dX;
+        float y = event.getRawY() + dY;
+        CellView v = (CellView) view;
+        move = GameView.INSTANCE.canMove(v);
+        switch (move){
+            case RIGHT:
+                if(x >= viewX && x <= viewX + v.getWidth() + PuzzzleActivity.ITEM_MARGIN){
+                    setXY(x,y);
+                    view.animate()
+                            .x(x)
+                            .setDuration(0)
+                            .start();
+                }
+                break;
+            case LEFT:
+                if(x <= viewX && x >= viewX - v.getWidth() - PuzzzleActivity.ITEM_MARGIN){
+                    setXY(x,y);
+                    view.animate()
+                            .x(x)
+                            .setDuration(0)
+                            .start();
+                }
+                break;
+            case UP:
+                if(y <= viewY && y >= viewY - v.getHeight() - PuzzzleActivity.ITEM_MARGIN){
+                    setXY(x,y);
+                    view.animate()
+                            .y(y)
+                            .setDuration(0)
+                            .start();
+                }
+                break;
+            case DOWN:
+                if(y >= viewY && y <= viewY + v.getHeight() + PuzzzleActivity.ITEM_MARGIN){
+                    setXY(x,y);
+                    view.animate()
+                            .y(y)
+                            .setDuration(0)
+                            .start();
+                }
+                break;
+            case NONE:
+
+                break;
+        }
     }
 
     private void actionUp(View view) {
@@ -121,54 +174,6 @@ public abstract class OnMoveTouchListener implements View.OnTouchListener {
 
     private void finishMoveDelayed(Runnable runnable) {
         new Handler().postDelayed(runnable, ANIMATION_DURATION);
-    }
-
-    private void actionMove(View view, MotionEvent event) {
-        float x = event.getRawX() + dX;
-        float y = event.getRawY() + dY;
-        CellView v = (CellView) view;
-        move = GameView.INSTANCE.canMove(v);
-        switch (move){
-            case RIGHT:
-                if(x >= viewX && x <= viewX + v.getWidth() + PuzzzleActivity.ITEM_MARGIN){
-                    setXY(x,y);
-                    view.animate()
-                            .x(x)
-                            .setDuration(0)
-                            .start();
-                }
-                break;
-            case LEFT:
-                if(x <= viewX && x >= viewX - v.getWidth() - PuzzzleActivity.ITEM_MARGIN){
-                    setXY(x,y);
-                    view.animate()
-                            .x(x)
-                            .setDuration(0)
-                            .start();
-                }
-                break;
-            case UP:
-                if(y <= viewY && y >= viewY - v.getHeight() - PuzzzleActivity.ITEM_MARGIN){
-                    setXY(x,y);
-                    view.animate()
-                            .y(y)
-                            .setDuration(0)
-                            .start();
-                }
-                break;
-            case DOWN:
-                if(y >= viewY && y <= viewY + v.getHeight() + PuzzzleActivity.ITEM_MARGIN){
-                    setXY(x,y);
-                    view.animate()
-                            .y(y)
-                            .setDuration(0)
-                            .start();
-                }
-                break;
-            case NONE:
-
-                break;
-        }
     }
 
     protected abstract void onMoveFinish(CellView view);
