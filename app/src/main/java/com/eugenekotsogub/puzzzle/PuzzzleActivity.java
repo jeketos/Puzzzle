@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -123,12 +122,7 @@ public class PuzzzleActivity extends AppCompatActivity {
     private OnMoveTouchListener swipeListener = new OnMoveTouchListener() {
         @Override
         protected void onMoveFinish(CellView view) {
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    doMove(view);
-                }
-            }, 50);
+            doMove(view);
         }
     };
 
@@ -162,6 +156,7 @@ public class PuzzzleActivity extends AppCompatActivity {
         }
         mainContainer.removeAllViews();
         layout.removeAllViews();
+        layout.setMotionEventSplittingEnabled(false);
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(size, size);
         params.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
         layout.setLayoutParams(params);
