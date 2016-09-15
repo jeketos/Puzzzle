@@ -1,14 +1,13 @@
 package com.eugenekotsogub.puzzzle;
 
 import android.Manifest;
-import android.animation.Animator;
-import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -124,101 +123,20 @@ public class PuzzzleActivity extends AppCompatActivity {
     private OnMoveTouchListener swipeListener = new OnMoveTouchListener() {
         @Override
         protected void onMoveFinish(CellView view) {
-            doMove(view);
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    doMove(view);
+                }
+            }, 50);
         }
     };
-//            new OnSwipeTouchListener(getBaseContext()){
-//
-//        @Override
-
-//        public void onSwipeRight(View view) {
-//            if(view instanceof CellView){
-//                int row = ((CellView) view).getCurrentCoordinate().row;
-//                int column = ((CellView) view).getCurrentCoordinate().column + 1;
-//                if(canMoveSwipe(row,column)){
-//                    doMove(((CellView)view));
-//                }
-//            }
-//        }
-//
-//        @Override
-//        public void onSwipeLeft(View view) {
-//            if(view instanceof CellView){
-//                int row = ((CellView) view).getCurrentCoordinate().row;
-//                int column = ((CellView) view).getCurrentCoordinate().column - 1;
-//                if(canMoveSwipe(row,column)){
-//                    doMove(((CellView)view));
-//                }
-//            }
-//        }
-//
-//        @Override
-//        public void onSwipeTop(View view) {
-//            if(view instanceof CellView){
-//                int row = ((CellView) view).getCurrentCoordinate().row - 1;
-//                int column = ((CellView) view).getCurrentCoordinate().column;
-//                if(canMoveSwipe(row,column)){
-//                    doMove(((CellView)view));
-//                }
-//            }
-//        }
-//
-//        @Override
-//        public void onSwipeBottom(View view) {
-//            if(view instanceof CellView){
-//                int row = ((CellView) view).getCurrentCoordinate().row + 1;
-//                int column = ((CellView) view).getCurrentCoordinate().column;
-//                if(canMoveSwipe(row,column)){
-//                    doMove(((CellView)view));
-//                }
-//            }
-//        }
-//
-//        @Override
-//        void onClick(View view) {
-//            if (view instanceof CellView){
-//                CellView v = (CellView)view;
-//                if(canMove(v)) {
-//                    doMove(v);
-//                }
-//            }
-//        }
-//    };
-
-    private boolean canMoveSwipe(int row, int column) {
-        int freeRow = GameView.INSTANCE.getFreeCoordinate().row;
-        int freeColumn = GameView.INSTANCE.getFreeCoordinate().column;
-        return row == freeRow && column == freeColumn;
-    }
-
-    private boolean canMove(CellView view) {
-        int row  = view.getCurrentCoordinate().row;
-        int column = view.getCurrentCoordinate().column;
-        int freeRow = GameView.INSTANCE.getFreeCoordinate().row;
-        int freeColumn = GameView.INSTANCE.getFreeCoordinate().column;
-        column += 1;
-        if(!(row == freeRow && column == freeColumn)){
-            column -= 2;
-            if(!(row == freeRow && column == freeColumn)){
-                column += 1;
-                row += 1;
-                if(!(row == freeRow && column == freeColumn)){
-                    row -= 2;
-                    if(!(row == freeRow && column == freeColumn)){
-                        return  false;
-                    }
-                }
-            }
-        }
-        return true;
-    }
 
     private void doMove(CellView v) {
         Coordinate free = GameView.INSTANCE.getFreeCoordinate();
         int freeRow = free.row;
         int freeColumn = free.column;
         Coordinate current = v.getCurrentCoordinate();
-//        move(v, free.row, free.column);
         GameView.INSTANCE.setFreeCoordinate(current);
         v.setCurrentCoordinate(freeRow, freeColumn);
         if (isPazzleDone()) {
@@ -294,54 +212,63 @@ public class PuzzzleActivity extends AppCompatActivity {
     public void animateMargin(ViewGroup viewGroup){
         createLayoutParams(CellsFabric.lastTile, true);
         viewGroup.addView(CellsFabric.lastTile);
-        int animValue = 10;
-        ValueAnimator animation = ValueAnimator.ofInt(animValue);
-        animation.setDuration(500);
-        animation.addUpdateListener(valueAnimator -> {
-            for (int i = 0; i < viewGroup.getChildCount(); i++) {
-                View view = viewGroup.getChildAt(i);
-                GridLayout.LayoutParams lp = (GridLayout.LayoutParams) view.getLayoutParams();
-                Integer animatedValue = ITEM_MARGIN + (Integer) animation.getAnimatedValue();
-                lp.setMargins( animatedValue, animatedValue,  animatedValue,  animatedValue);
-                view.setLayoutParams(lp);
-            }
-        });
-        animation.addListener(new Animator.AnimatorListener() {
-            @Override
-            public void onAnimationStart(Animator animator) {
-
-            }
-
-            @Override
-            public void onAnimationEnd(Animator animator) {
-
-                int animValue = 10 + ITEM_MARGIN;
-                ValueAnimator animation = ValueAnimator.ofInt(animValue);
-                animation.setDuration(500);
-                animation.addUpdateListener(valueAnimator -> {
-                    for (int i = 0; i < viewGroup.getChildCount(); i++) {
-                        View view = viewGroup.getChildAt(i);
-                        GridLayout.LayoutParams lp = (GridLayout.LayoutParams) view.getLayoutParams();
-                        Integer animatedValue = animValue - (Integer) animation.getAnimatedValue();
-                        lp.setMargins( animatedValue, animatedValue,  animatedValue,  animatedValue);
-                        view.setLayoutParams(lp);
-                    }
-                });
-                animation.start();
-            }
-
-            @Override
-            public void onAnimationCancel(Animator animator) {
-
-            }
-
-            @Override
-            public void onAnimationRepeat(Animator animator) {
-
-            }
-        });
-        animation.start();
-
+//        int animValue = 10;
+//        ValueAnimator animation = ValueAnimator.ofInt(animValue);
+//        animation.setDuration(500);
+//        animation.addUpdateListener(valueAnimator -> {
+//            for (int i = 0; i < viewGroup.getChildCount(); i++) {
+//                View view = viewGroup.getChildAt(i);
+//                GridLayout.LayoutParams lp = (GridLayout.LayoutParams) view.getLayoutParams();
+//                Integer animatedValue = ITEM_MARGIN + (Integer) animation.getAnimatedValue();
+//                lp.setMargins( animatedValue, animatedValue,  animatedValue,  animatedValue);
+//                view.setLayoutParams(lp);
+////                view.animate()
+////                        .y(animatedValue)
+////                        .x(animatedValue)
+////                        .setDuration(0)
+////                        .start();
+//            }
+//        });
+//        animation.addListener(new Animator.AnimatorListener() {
+//            @Override
+//            public void onAnimationStart(Animator animator) {
+//
+//            }
+//
+//            @Override
+//            public void onAnimationEnd(Animator animator) {
+//
+//                int animValue = 10 + ITEM_MARGIN;
+//                ValueAnimator animation = ValueAnimator.ofInt(animValue);
+//                animation.setDuration(500);
+//                animation.addUpdateListener(valueAnimator -> {
+//                    for (int i = 0; i < viewGroup.getChildCount(); i++) {
+//                        View view = viewGroup.getChildAt(i);
+//                        GridLayout.LayoutParams lp = (GridLayout.LayoutParams) view.getLayoutParams();
+//                        Integer animatedValue = animValue - (Integer) animation.getAnimatedValue();
+//                        lp.setMargins( animatedValue, animatedValue,  animatedValue,  animatedValue);
+//                        view.setLayoutParams(lp);
+////                        view.animate()
+////                                .y(animatedValue)
+////                                .x(animatedValue)
+////                                .setDuration(0)
+////                                .start();
+//                    }
+//                });
+//                animation.start();
+//            }
+//
+//            @Override
+//            public void onAnimationCancel(Animator animator) {
+//
+//            }
+//
+//            @Override
+//            public void onAnimationRepeat(Animator animator) {
+//
+//            }
+//        });
+//        animation.start();
     }
 
     public int getBoardWidth() {

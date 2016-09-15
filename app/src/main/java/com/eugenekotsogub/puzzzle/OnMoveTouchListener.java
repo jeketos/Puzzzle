@@ -1,5 +1,6 @@
 package com.eugenekotsogub.puzzzle;
 
+import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -11,7 +12,7 @@ import com.eugenekotsogub.puzzzle.cell.CellView;
  */
 public abstract class OnMoveTouchListener implements View.OnTouchListener {
 
-    public static final int ANIMATION_DURATION = 200;
+    public static final int ANIMATION_DURATION = 50;
     private float dX;
     private float dY;
     private float viewX;
@@ -45,6 +46,7 @@ public abstract class OnMoveTouchListener implements View.OnTouchListener {
 
     private void actionUp(View view) {
         if(move != null) {
+            view.setOnTouchListener(null);
             switch (move){
                 case RIGHT:
                     if(x - viewX >= view.getWidth()/2){
@@ -52,7 +54,8 @@ public abstract class OnMoveTouchListener implements View.OnTouchListener {
                                 .x(viewX + view.getWidth() + 2*PuzzzleActivity.ITEM_MARGIN)
                                 .setDuration(ANIMATION_DURATION)
                                 .start();
-                        onMoveFinish((CellView) view);
+                        finishMoveDelayed(() ->
+                                onMoveFinish((CellView)view));
                     } else {
                         view.animate()
                                 .x(viewX)
@@ -67,7 +70,8 @@ public abstract class OnMoveTouchListener implements View.OnTouchListener {
                                 .x(viewX - view.getWidth() - 2*PuzzzleActivity.ITEM_MARGIN)
                                 .setDuration(ANIMATION_DURATION)
                                 .start();
-                        onMoveFinish((CellView) view);
+                        finishMoveDelayed(() ->
+                                onMoveFinish((CellView)view));
                     } else {
                         view.animate()
                                 .x(viewX)
@@ -82,7 +86,8 @@ public abstract class OnMoveTouchListener implements View.OnTouchListener {
                                 .y(viewY + view.getHeight() + 2*PuzzzleActivity.ITEM_MARGIN)
                                 .setDuration(ANIMATION_DURATION)
                                 .start();
-                        onMoveFinish((CellView) view);
+                        finishMoveDelayed(() ->
+                                onMoveFinish((CellView)view));
                     } else {
                         view.animate()
                                 .y(viewY)
@@ -97,21 +102,25 @@ public abstract class OnMoveTouchListener implements View.OnTouchListener {
                                 .y(viewY - view.getHeight() - 2*PuzzzleActivity.ITEM_MARGIN)
                                 .setDuration(ANIMATION_DURATION)
                                 .start();
-                        onMoveFinish((CellView) view);
+                        finishMoveDelayed(() ->
+                                onMoveFinish((CellView)view));
                     } else {
                         view.animate()
                                 .y(viewY)
                                 .setDuration(ANIMATION_DURATION)
                                 .start();
                     }
-
                     break;
                 case NONE:
 
                     break;
             }
-
+            new Handler().postDelayed(() -> view.setOnTouchListener(this), ANIMATION_DURATION);
         }
+    }
+
+    private void finishMoveDelayed(Runnable runnable) {
+        new Handler().postDelayed(runnable, ANIMATION_DURATION);
     }
 
     private void actionMove(View view, MotionEvent event) {
