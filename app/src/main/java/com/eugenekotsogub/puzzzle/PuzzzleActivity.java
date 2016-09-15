@@ -121,62 +121,64 @@ public class PuzzzleActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private OnSwipeTouchListener swipeListener = new OnSwipeTouchListener(getBaseContext()){
+    private OnMoveTouchListener swipeListener = new OnMoveTouchListener();
+//            new OnSwipeTouchListener(getBaseContext()){
+//
+//        @Override
 
-        @Override
-        public void onSwipeRight(View view) {
-            if(view instanceof CellView){
-                int row = ((CellView) view).getCurrentCoordinate().row;
-                int column = ((CellView) view).getCurrentCoordinate().column + 1;
-                if(canMoveSwipe(row,column)){
-                    doMove(((CellView)view));
-                }
-            }
-        }
-
-        @Override
-        public void onSwipeLeft(View view) {
-            if(view instanceof CellView){
-                int row = ((CellView) view).getCurrentCoordinate().row;
-                int column = ((CellView) view).getCurrentCoordinate().column - 1;
-                if(canMoveSwipe(row,column)){
-                    doMove(((CellView)view));
-                }
-            }
-        }
-
-        @Override
-        public void onSwipeTop(View view) {
-            if(view instanceof CellView){
-                int row = ((CellView) view).getCurrentCoordinate().row - 1;
-                int column = ((CellView) view).getCurrentCoordinate().column;
-                if(canMoveSwipe(row,column)){
-                    doMove(((CellView)view));
-                }
-            }
-        }
-
-        @Override
-        public void onSwipeBottom(View view) {
-            if(view instanceof CellView){
-                int row = ((CellView) view).getCurrentCoordinate().row + 1;
-                int column = ((CellView) view).getCurrentCoordinate().column;
-                if(canMoveSwipe(row,column)){
-                    doMove(((CellView)view));
-                }
-            }
-        }
-
-        @Override
-        void onClick(View view) {
-            if (view instanceof CellView){
-                CellView v = (CellView)view;
-                if(canMove(v)) {
-                    doMove(v);
-                }
-            }
-        }
-    };
+//        public void onSwipeRight(View view) {
+//            if(view instanceof CellView){
+//                int row = ((CellView) view).getCurrentCoordinate().row;
+//                int column = ((CellView) view).getCurrentCoordinate().column + 1;
+//                if(canMoveSwipe(row,column)){
+//                    doMove(((CellView)view));
+//                }
+//            }
+//        }
+//
+//        @Override
+//        public void onSwipeLeft(View view) {
+//            if(view instanceof CellView){
+//                int row = ((CellView) view).getCurrentCoordinate().row;
+//                int column = ((CellView) view).getCurrentCoordinate().column - 1;
+//                if(canMoveSwipe(row,column)){
+//                    doMove(((CellView)view));
+//                }
+//            }
+//        }
+//
+//        @Override
+//        public void onSwipeTop(View view) {
+//            if(view instanceof CellView){
+//                int row = ((CellView) view).getCurrentCoordinate().row - 1;
+//                int column = ((CellView) view).getCurrentCoordinate().column;
+//                if(canMoveSwipe(row,column)){
+//                    doMove(((CellView)view));
+//                }
+//            }
+//        }
+//
+//        @Override
+//        public void onSwipeBottom(View view) {
+//            if(view instanceof CellView){
+//                int row = ((CellView) view).getCurrentCoordinate().row + 1;
+//                int column = ((CellView) view).getCurrentCoordinate().column;
+//                if(canMoveSwipe(row,column)){
+//                    doMove(((CellView)view));
+//                }
+//            }
+//        }
+//
+//        @Override
+//        void onClick(View view) {
+//            if (view instanceof CellView){
+//                CellView v = (CellView)view;
+//                if(canMove(v)) {
+//                    doMove(v);
+//                }
+//            }
+//        }
+//    };
 
     private boolean canMoveSwipe(int row, int column) {
         int freeRow = GameView.INSTANCE.getFreeCoordinate().row;

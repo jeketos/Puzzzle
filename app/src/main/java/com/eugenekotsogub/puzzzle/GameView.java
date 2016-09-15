@@ -1,5 +1,7 @@
 package com.eugenekotsogub.puzzzle;
 
+import com.eugenekotsogub.puzzzle.cell.CellView;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -62,6 +64,35 @@ public enum  GameView {
             }
         }
         return gameBoard;
+    }
+
+    public Move canMove(CellView view) {
+        int row = view.getCurrentCoordinate().row;
+        int column = view.getCurrentCoordinate().column;
+        int freeRow = GameView.INSTANCE.getFreeCoordinate().row;
+        int freeColumn = GameView.INSTANCE.getFreeCoordinate().column;
+        column += 1;
+        if (row == freeRow && column == freeColumn) {
+            return Move.RIGHT;
+        } else {
+            column -= 2;
+            if (row == freeRow && column == freeColumn) {
+                return Move.LEFT;
+            } else {
+                column += 1;
+                row += 1;
+                if (row == freeRow && column == freeColumn) {
+                    return Move.DOWN;
+                } else {
+                    row -= 2;
+                    if (row == freeRow && column == freeColumn) {
+                        return Move.UP;
+                    } else {
+                        return Move.NONE;
+                    }
+                }
+            }
+        }
     }
 }
 

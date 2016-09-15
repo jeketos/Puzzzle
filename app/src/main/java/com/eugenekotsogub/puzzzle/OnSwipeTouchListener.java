@@ -32,6 +32,7 @@ public abstract class OnSwipeTouchListener implements OnTouchListener {
             return true;
         }
 
+
         @Override
         public boolean onSingleTapUp(MotionEvent e) {
             onClick(view);
