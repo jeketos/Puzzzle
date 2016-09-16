@@ -43,6 +43,9 @@ public class PuzzzleActivity extends AppCompatActivity {
 
     private static final int REQUEST_CAMERA = 20;
     private static final int REQUEST_GALLERY = 21;
+    public static final String PHOTO_PATH = "photo_path";
+    public static final String COLUMN_COUNT = "column_count";
+    public static final String ROW_COUNT = "row_count";
     @BindView(R.id.main_container)
     ViewGroup mainContainer;
 
@@ -58,11 +61,24 @@ public class PuzzzleActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if(savedInstanceState != null){
+            photoPath = savedInstanceState.getString(PHOTO_PATH);
+            columnCount = savedInstanceState.getInt(COLUMN_COUNT);
+            rowCount = savedInstanceState.getInt(ROW_COUNT);
+        }
         Fabric.with(this, new Crashlytics());
         setContentView(R.layout.activity_puzzzle);
         ButterKnife.bind(this);
         size = getBoardWidth();
         init();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putString(PHOTO_PATH, photoPath);
+        outState.putInt(COLUMN_COUNT, columnCount);
+        outState.putInt(ROW_COUNT, rowCount);
+        super.onSaveInstanceState(outState);
     }
 
     private void init() {
