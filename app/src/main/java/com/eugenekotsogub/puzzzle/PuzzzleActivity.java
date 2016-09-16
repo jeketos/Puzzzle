@@ -43,8 +43,12 @@ public class PuzzzleActivity extends AppCompatActivity {
 
     private static final int REQUEST_CAMERA = 20;
     private static final int REQUEST_GALLERY = 21;
+    public static final String PHOTO_PATH = "photo_path";
+    public static final String COLUMN_COUNT = "column_count";
+    public static final String ROW_COUNT = "row_count";
     @BindView(R.id.main_container)
     ViewGroup mainContainer;
+
     List<CellView> cells;
     int columnCount = 3, rowCount = 3;
     private GridLayout layout;
@@ -57,11 +61,24 @@ public class PuzzzleActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if(savedInstanceState != null){
+            photoPath = savedInstanceState.getString(PHOTO_PATH);
+            columnCount = savedInstanceState.getInt(COLUMN_COUNT);
+            rowCount = savedInstanceState.getInt(ROW_COUNT);
+        }
         Fabric.with(this, new Crashlytics());
         setContentView(R.layout.activity_puzzzle);
         ButterKnife.bind(this);
         size = getBoardWidth();
         init();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putString(PHOTO_PATH, photoPath);
+        outState.putInt(COLUMN_COUNT, columnCount);
+        outState.putInt(ROW_COUNT, rowCount);
+        super.onSaveInstanceState(outState);
     }
 
     private void init() {
@@ -121,97 +138,18 @@ public class PuzzzleActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private OnSwipeTouchListener swipeListener = new OnSwipeTouchListener(getBaseContext()){
-
+    private OnMoveTouchListener swipeListener = new OnMoveTouchListener() {
         @Override
-        public void onSwipeRight(View view) {
-            if(view instanceof CellView){
-                int row = ((CellView) view).getCurrentCoordinate().row;
-                int column = ((CellView) view).getCurrentCoordinate().column + 1;
-                if(canMoveSwipe(row,column)){
-                    doMove(((CellView)view));
-                }
-            }
-        }
-
-        @Override
-        public void onSwipeLeft(View view) {
-            if(view instanceof CellView){
-                int row = ((CellView) view).getCurrentCoordinate().row;
-                int column = ((CellView) view).getCurrentCoordinate().column - 1;
-                if(canMoveSwipe(row,column)){
-                    doMove(((CellView)view));
-                }
-            }
-        }
-
-        @Override
-        public void onSwipeTop(View view) {
-            if(view instanceof CellView){
-                int row = ((CellView) view).getCurrentCoordinate().row - 1;
-                int column = ((CellView) view).getCurrentCoordinate().column;
-                if(canMoveSwipe(row,column)){
-                    doMove(((CellView)view));
-                }
-            }
-        }
-
-        @Override
-        public void onSwipeBottom(View view) {
-            if(view instanceof CellView){
-                int row = ((CellView) view).getCurrentCoordinate().row + 1;
-                int column = ((CellView) view).getCurrentCoordinate().column;
-                if(canMoveSwipe(row,column)){
-                    doMove(((CellView)view));
-                }
-            }
-        }
-
-        @Override
-        void onClick(View view) {
-            if (view instanceof CellView){
-                CellView v = (CellView)view;
-                if(canMove(v)) {
-                    doMove(v);
-                }
-            }
+        protected void onMoveFinish(CellView view) {
+            doMove(view);
         }
     };
-
-    private boolean canMoveSwipe(int row, int column) {
-        int freeRow = GameView.INSTANCE.getFreeCoordinate().row;
-        int freeColumn = GameView.INSTANCE.getFreeCoordinate().column;
-        return row == freeRow && column == freeColumn;
-    }
-
-    private boolean canMove(CellView view) {
-        int row  = view.getCurrentCoordinate().row;
-        int column = view.getCurrentCoordinate().column;
-        int freeRow = GameView.INSTANCE.getFreeCoordinate().row;
-        int freeColumn = GameView.INSTANCE.getFreeCoordinate().column;
-        column += 1;
-        if(!(row == freeRow && column == freeColumn)){
-            column -= 2;
-            if(!(row == freeRow && column == freeColumn)){
-                column += 1;
-                row += 1;
-                if(!(row == freeRow && column == freeColumn)){
-                    row -= 2;
-                    if(!(row == freeRow && column == freeColumn)){
-                        return  false;
-                    }
-                }
-            }
-        }
-        return true;
-    }
 
     private void doMove(CellView v) {
         Coordinate free = GameView.INSTANCE.getFreeCoordinate();
         int freeRow = free.row;
         int freeColumn = free.column;
         Coordinate current = v.getCurrentCoordinate();
-        move(v, free.row, free.column);
         GameView.INSTANCE.setFreeCoordinate(current);
         v.setCurrentCoordinate(freeRow, freeColumn);
         if (isPazzleDone()) {
@@ -230,23 +168,21 @@ public class PuzzzleActivity extends AppCompatActivity {
         return true;
     }
 
-
     private void draw(List<CellView> cells) {
         if(layout == null) {
             layout = new GridLayout(this);
         }
+        mainContainer.removeAllViews();
         layout.removeAllViews();
+        layout.setMotionEventSplittingEnabled(false);
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(size, size);
         params.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
         layout.setLayoutParams(params);
-//        layout.setBackgroundColor(ContextCompat.getColor(this, R.color.colorAccent));
         layout.setColumnCount(columnCount);
         layout.setRowCount(rowCount);
         for (CellView view : cells) {
             view.setOnTouchListener(swipeListener);
             createLayoutParams(view, false);
-//            view.setText(Integer.toString(column*columnCount + row + 1));
-//            view.setBackgroundColor(ContextCompat.getColor(this,R.color.colorPrimary));
             layout.addView(view);
         }
 
@@ -264,17 +200,10 @@ public class PuzzzleActivity extends AppCompatActivity {
             p.rowSpec = GridLayout.spec(view.getCurrentCoordinate().row);
         }
         view.setLayoutParams(p);
-        view.getLayoutParams().height = size/rowCount - 4;
-        view.getLayoutParams().width = size/columnCount - 4;
+        view.getLayoutParams().height = size/rowCount - 2*ITEM_MARGIN;
+        view.getLayoutParams().width = size/columnCount - 2*ITEM_MARGIN;
         view.setGravity(Gravity.CENTER);
-        view.setTextSize((size/rowCount - 4)/5);
-    }
-
-    public void move(View view, int row, int column){
-        GridLayout.LayoutParams params = (GridLayout.LayoutParams) view.getLayoutParams();
-        ((GridLayout.LayoutParams) view.getLayoutParams()).columnSpec = GridLayout.spec(column);
-        ((GridLayout.LayoutParams) view.getLayoutParams()).rowSpec = GridLayout.spec(row);
-        view.setLayoutParams(params);
+        view.setTextSize((size/rowCount - 2*ITEM_MARGIN)/5);
     }
 
     public void clearViewTouch(ViewGroup viewGroup){
@@ -292,10 +221,9 @@ public class PuzzzleActivity extends AppCompatActivity {
         animation.addUpdateListener(valueAnimator -> {
             for (int i = 0; i < viewGroup.getChildCount(); i++) {
                 View view = viewGroup.getChildAt(i);
-                GridLayout.LayoutParams lp = (GridLayout.LayoutParams) view.getLayoutParams();
                 Integer animatedValue = ITEM_MARGIN + (Integer) animation.getAnimatedValue();
-                lp.setMargins( animatedValue, animatedValue,  animatedValue,  animatedValue);
-                view.setLayoutParams(lp);
+                view.setY(view.getY() + animatedValue);
+                view.setX(view.getX() + animatedValue);
             }
         });
         animation.addListener(new Animator.AnimatorListener() {
@@ -313,10 +241,9 @@ public class PuzzzleActivity extends AppCompatActivity {
                 animation.addUpdateListener(valueAnimator -> {
                     for (int i = 0; i < viewGroup.getChildCount(); i++) {
                         View view = viewGroup.getChildAt(i);
-                        GridLayout.LayoutParams lp = (GridLayout.LayoutParams) view.getLayoutParams();
                         Integer animatedValue = animValue - (Integer) animation.getAnimatedValue();
-                        lp.setMargins( animatedValue, animatedValue,  animatedValue,  animatedValue);
-                        view.setLayoutParams(lp);
+                        view.setY(view.getY() - animatedValue);
+                        view.setX(view.getX() - animatedValue);
                     }
                 });
                 animation.start();
@@ -333,7 +260,6 @@ public class PuzzzleActivity extends AppCompatActivity {
             }
         });
         animation.start();
-
     }
 
     public int getBoardWidth() {
@@ -367,6 +293,8 @@ public class PuzzzleActivity extends AppCompatActivity {
                     //noinspection MissingPermission
                     toCameraPath = ImageUtils.takePhoto(this,REQUEST_CAMERA);
 //                    isCameraRequest = false;
+                }  else {
+                    showToast(getString(R.string.permission_camera_denied));
                 }
             }
             else if (item == 1) {
@@ -374,6 +302,8 @@ public class PuzzzleActivity extends AppCompatActivity {
                         Manifest.permission.READ_EXTERNAL_STORAGE)) {
                     //noinspection MissingPermission
                     ImageUtils.getPhoto(this,REQUEST_GALLERY);
+                }else {
+                    showToast(getString(R.string.permission_read_denied));
                 }
             }
         });
@@ -389,25 +319,16 @@ public class PuzzzleActivity extends AppCompatActivity {
                         //noinspection MissingPermission
                         toCameraPath = ImageUtils.takePhoto(this,REQUEST_CAMERA);
                 } else {
-                    showToast("Доступ к камере запрещен");
+                    showToast(getString(R.string.permission_camera_denied));
                 }
                 break;
-//            case Permission.REQUEST_CAMERA_WRITE:
-//                if (grantResults.length > 0
-//                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-//                        boolean b = Permission.isGranted(this, Manifest.permission.CAMERA, Permission.REQUEST_CAMERA);
-//                        Log.d("NewAdvertFragment", "storage granted -" + b);
-//                }else {
-//                    showToast("Доступ к записи во внутренний накопитель запрещен");
-//                }
-//                break;
             case Permission.REQUEST_READ_EXTERNAL_STORAGE:
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     //noinspection MissingPermission
                     ImageUtils.getPhoto(this,REQUEST_GALLERY);
                 }else {
-                    showToast("Доступ к чтению из внутреннего накопителя запрещен");
+                    showToast(getString(R.string.permission_read_denied));
                 }
                 break;
         }
