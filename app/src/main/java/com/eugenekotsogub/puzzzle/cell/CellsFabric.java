@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
+import android.os.Build;
 import android.text.TextUtils;
 
 import com.eugenekotsogub.puzzzle.Coordinate;
@@ -28,15 +29,13 @@ public class CellsFabric {
                 Coordinate coordinate = shuffled.get(i*row + j);
                 if(!(coordinate.row == row -1 && coordinate.column == column - 1)){
                     CellView cellView = new CellView(context);
-//                    String text = Integer.toString(coordinate.row*row + coordinate.column + 1);// user friendly number
-//                    cellView.setText(text);
-                    cellView.setBackgroundDrawable(new BitmapDrawable(imageTiles.get(coordinate.row*row + coordinate.column )));
+                    setBackground(cellView, imageTiles.get(coordinate.row*row + coordinate.column));
                     cellView.setAnchorCoordiates(coordinate);
                     cellView.setCurrentCoordinate(i,j);
                     cells.add(cellView);
                 } else {
                     CellView cellView = new CellView(context);
-                    cellView.setBackgroundDrawable(new BitmapDrawable(imageTiles.get(coordinate.row*row + coordinate.column )));
+                    setBackground(cellView, imageTiles.get(coordinate.row*row + coordinate.column));
                     cellView.setAnchorCoordiates(coordinate);
                     cellView.setCurrentCoordinate(i,j);
                     lastTile = cellView;
@@ -44,6 +43,16 @@ public class CellsFabric {
             }
         }
         return cells;
+    }
+
+    private static void setBackground(CellView view, Bitmap bitmap) {
+        BitmapDrawable bitmapDrawable = new BitmapDrawable(view.getResources(), bitmap);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN){
+            //noinspection deprecation
+            view.setBackgroundDrawable(bitmapDrawable);
+        } else {
+            view.setBackground(bitmapDrawable);
+        }
     }
 
     public static List<Bitmap> getImageTiles(Context context, String imagePath, int column, int row){
@@ -54,7 +63,6 @@ public class CellsFabric {
         } else {
             image = BitmapFactory.decodeFile(imagePath);
         }
-//        int tilesSize = column*row;
         int tileWidth = image.getWidth()/column;
         int tileHeight = image.getHeight()/row;
         for(int i = 0; i < row; i++) {

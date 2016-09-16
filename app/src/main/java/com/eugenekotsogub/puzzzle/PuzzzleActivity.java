@@ -1,6 +1,8 @@
 package com.eugenekotsogub.puzzzle;
 
 import android.Manifest;
+import android.animation.Animator;
+import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -43,6 +45,7 @@ public class PuzzzleActivity extends AppCompatActivity {
     private static final int REQUEST_GALLERY = 21;
     @BindView(R.id.main_container)
     ViewGroup mainContainer;
+
     List<CellView> cells;
     int columnCount = 3, rowCount = 3;
     private GridLayout layout;
@@ -149,7 +152,6 @@ public class PuzzzleActivity extends AppCompatActivity {
         return true;
     }
 
-
     private void draw(List<CellView> cells) {
         if(layout == null) {
             layout = new GridLayout(this);
@@ -160,14 +162,11 @@ public class PuzzzleActivity extends AppCompatActivity {
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(size, size);
         params.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
         layout.setLayoutParams(params);
-//        layout.setBackgroundColor(ContextCompat.getColor(this, R.color.colorAccent));
         layout.setColumnCount(columnCount);
         layout.setRowCount(rowCount);
         for (CellView view : cells) {
             view.setOnTouchListener(swipeListener);
             createLayoutParams(view, false);
-//            view.setText(Integer.toString(column*columnCount + row + 1));
-//            view.setBackgroundColor(ContextCompat.getColor(this,R.color.colorPrimary));
             layout.addView(view);
         }
 
@@ -185,17 +184,10 @@ public class PuzzzleActivity extends AppCompatActivity {
             p.rowSpec = GridLayout.spec(view.getCurrentCoordinate().row);
         }
         view.setLayoutParams(p);
-        view.getLayoutParams().height = size/rowCount - 4;
-        view.getLayoutParams().width = size/columnCount - 4;
+        view.getLayoutParams().height = size/rowCount - 2*ITEM_MARGIN;
+        view.getLayoutParams().width = size/columnCount - 2*ITEM_MARGIN;
         view.setGravity(Gravity.CENTER);
-        view.setTextSize((size/rowCount - 4)/5);
-    }
-
-    public void move(View view, int row, int column){
-        GridLayout.LayoutParams params = (GridLayout.LayoutParams) view.getLayoutParams();
-        ((GridLayout.LayoutParams) view.getLayoutParams()).columnSpec = GridLayout.spec(column);
-        ((GridLayout.LayoutParams) view.getLayoutParams()).rowSpec = GridLayout.spec(row);
-        view.setLayoutParams(params);
+        view.setTextSize((size/rowCount - 2*ITEM_MARGIN)/5);
     }
 
     public void clearViewTouch(ViewGroup viewGroup){
@@ -207,63 +199,51 @@ public class PuzzzleActivity extends AppCompatActivity {
     public void animateMargin(ViewGroup viewGroup){
         createLayoutParams(CellsFabric.lastTile, true);
         viewGroup.addView(CellsFabric.lastTile);
-//        int animValue = 10;
-//        ValueAnimator animation = ValueAnimator.ofInt(animValue);
-//        animation.setDuration(500);
-//        animation.addUpdateListener(valueAnimator -> {
-//            for (int i = 0; i < viewGroup.getChildCount(); i++) {
-//                View view = viewGroup.getChildAt(i);
-//                GridLayout.LayoutParams lp = (GridLayout.LayoutParams) view.getLayoutParams();
-//                Integer animatedValue = ITEM_MARGIN + (Integer) animation.getAnimatedValue();
-//                lp.setMargins( animatedValue, animatedValue,  animatedValue,  animatedValue);
-//                view.setLayoutParams(lp);
-////                view.animate()
-////                        .y(animatedValue)
-////                        .x(animatedValue)
-////                        .setDuration(0)
-////                        .start();
-//            }
-//        });
-//        animation.addListener(new Animator.AnimatorListener() {
-//            @Override
-//            public void onAnimationStart(Animator animator) {
-//
-//            }
-//
-//            @Override
-//            public void onAnimationEnd(Animator animator) {
-//
-//                int animValue = 10 + ITEM_MARGIN;
-//                ValueAnimator animation = ValueAnimator.ofInt(animValue);
-//                animation.setDuration(500);
-//                animation.addUpdateListener(valueAnimator -> {
-//                    for (int i = 0; i < viewGroup.getChildCount(); i++) {
-//                        View view = viewGroup.getChildAt(i);
-//                        GridLayout.LayoutParams lp = (GridLayout.LayoutParams) view.getLayoutParams();
-//                        Integer animatedValue = animValue - (Integer) animation.getAnimatedValue();
-//                        lp.setMargins( animatedValue, animatedValue,  animatedValue,  animatedValue);
-//                        view.setLayoutParams(lp);
-////                        view.animate()
-////                                .y(animatedValue)
-////                                .x(animatedValue)
-////                                .setDuration(0)
-////                                .start();
-//                    }
-//                });
-//                animation.start();
-//            }
-//
-//            @Override
-//            public void onAnimationCancel(Animator animator) {
-//
-//            }
-//
-//            @Override
-//            public void onAnimationRepeat(Animator animator) {
-//
-//            }
-//        });
-//        animation.start();
+        int animValue = 10;
+        ValueAnimator animation = ValueAnimator.ofInt(animValue);
+        animation.setDuration(500);
+        animation.addUpdateListener(valueAnimator -> {
+            for (int i = 0; i < viewGroup.getChildCount(); i++) {
+                View view = viewGroup.getChildAt(i);
+                Integer animatedValue = ITEM_MARGIN + (Integer) animation.getAnimatedValue();
+                view.setY(view.getY() + animatedValue);
+                view.setX(view.getX() + animatedValue);
+            }
+        });
+        animation.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animator) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animator) {
+
+                int animValue = 10 + ITEM_MARGIN;
+                ValueAnimator animation = ValueAnimator.ofInt(animValue);
+                animation.setDuration(500);
+                animation.addUpdateListener(valueAnimator -> {
+                    for (int i = 0; i < viewGroup.getChildCount(); i++) {
+                        View view = viewGroup.getChildAt(i);
+                        Integer animatedValue = animValue - (Integer) animation.getAnimatedValue();
+                        view.setY(view.getY() - animatedValue);
+                        view.setX(view.getX() - animatedValue);
+                    }
+                });
+                animation.start();
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animator) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animator) {
+
+            }
+        });
+        animation.start();
     }
 
     public int getBoardWidth() {
@@ -326,15 +306,6 @@ public class PuzzzleActivity extends AppCompatActivity {
                     showToast(getString(R.string.permission_camera_denied));
                 }
                 break;
-//            case Permission.REQUEST_CAMERA_WRITE:
-//                if (grantResults.length > 0
-//                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-//                        boolean b = Permission.isGranted(this, Manifest.permission.CAMERA, Permission.REQUEST_CAMERA);
-//                        Log.d("NewAdvertFragment", "storage granted -" + b);
-//                }else {
-//                    showToast("Доступ к записи во внутренний накопитель запрещен");
-//                }
-//                break;
             case Permission.REQUEST_READ_EXTERNAL_STORAGE:
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {

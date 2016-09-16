@@ -12,4 +12,5 @@
     android:splitMotionEvents="false"
     tools:context="com.eugenekotsogub.puzzzle.PuzzzleActivity">
 
+
 </RelativeLayout>
