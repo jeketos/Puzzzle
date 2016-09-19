@@ -93,7 +93,7 @@ public abstract class OnMoveTouchListener implements View.OnTouchListener {
             switch (move){
                 case RIGHT:
                     if(x - viewX >= view.getWidth()/2){
-                        animateX(view, viewX + view.getWidth() + 2*PuzzzleActivity.ITEM_MARGIN, ANIMATION_DURATION);
+                        animateX(view, viewX + view.getWidth() + 2 * PuzzzleActivity.ITEM_MARGIN, ANIMATION_DURATION);
                         finishMoveDelayed(() ->
                                 onMoveFinish((CellView)view));
                     } else {
@@ -103,7 +103,7 @@ public abstract class OnMoveTouchListener implements View.OnTouchListener {
                     break;
                 case LEFT:
                     if(viewX - x >= view.getWidth()/2){
-                        animateX(view, viewX - view.getWidth() - 2*PuzzzleActivity.ITEM_MARGIN, ANIMATION_DURATION);
+                        animateX(view, viewX - view.getWidth() - 2 * PuzzzleActivity.ITEM_MARGIN, ANIMATION_DURATION);
                         finishMoveDelayed(() ->
                                 onMoveFinish((CellView)view));
                     } else {
@@ -113,7 +113,7 @@ public abstract class OnMoveTouchListener implements View.OnTouchListener {
                     break;
                 case DOWN:
                     if(y - viewY >= view.getHeight()/2){
-                        animateY(view, viewY + view.getHeight() + 2* PuzzzleActivity.ITEM_MARGIN, ANIMATION_DURATION);
+                        animateY(view, viewY + view.getHeight() + 2 * PuzzzleActivity.ITEM_MARGIN, ANIMATION_DURATION);
                         finishMoveDelayed(() ->
                                 onMoveFinish((CellView)view));
                     } else {
@@ -123,7 +123,7 @@ public abstract class OnMoveTouchListener implements View.OnTouchListener {
                     break;
                 case UP:
                     if(viewY - y >= view.getHeight()/2){
-                        animateY(view, viewY - view.getHeight() - 2*PuzzzleActivity.ITEM_MARGIN, ANIMATION_DURATION);
+                        animateY(view, viewY - view.getHeight() - 2 * PuzzzleActivity.ITEM_MARGIN, ANIMATION_DURATION);
                         finishMoveDelayed(() ->
                                 onMoveFinish((CellView)view));
                     } else {
