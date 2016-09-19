@@ -4,6 +4,10 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.graphics.drawable.ColorDrawable;
+import android.support.annotation.NonNull;
+import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.RotateAnimation;
 
 import com.eugenekotsogub.puzzzle.R;
 
@@ -27,6 +31,29 @@ public class Utils {
         dialog.setContentView(R.layout.progress_dialog_item);
 
         return dialog;
+    }
+
+    public static void createViewRotateAnimation(int startDegrees, int stopDegrees, int time, @NonNull View viewToAnimate) {
+        RotateAnimation rotateAnimation = new RotateAnimation(startDegrees,stopDegrees, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
+        rotateAnimation.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
+        rotateAnimation.setFillAfter(true);
+        rotateAnimation.setDuration(time);
+        viewToAnimate.startAnimation(rotateAnimation);
     }
 
 }

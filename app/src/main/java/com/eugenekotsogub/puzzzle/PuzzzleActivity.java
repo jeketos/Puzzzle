@@ -1,14 +1,13 @@
 package com.eugenekotsogub.puzzzle;
 
 import android.Manifest;
-import android.animation.Animator;
-import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -153,9 +152,11 @@ public class PuzzzleActivity extends AppCompatActivity {
         GameView.INSTANCE.setFreeCoordinate(current);
         v.setCurrentCoordinate(freeRow, freeColumn);
         if (isPazzleDone()) {
-            clearViewTouch(layout);
-            animateMargin(layout);
-            Toast.makeText(PuzzzleActivity.this, "Ай да молодец! Выиграл!", Toast.LENGTH_SHORT).show();
+            new Handler().postDelayed(() -> {
+                clearViewTouch(layout);
+                doFinalAnimation(layout);
+                Toast.makeText(PuzzzleActivity.this, "Ай да молодец! Выиграл!", Toast.LENGTH_SHORT).show();
+            }, OnMoveTouchListener.ANIMATION_DURATION);
         }
     }
 
@@ -212,54 +213,13 @@ public class PuzzzleActivity extends AppCompatActivity {
         }
     }
 
-    public void animateMargin(ViewGroup viewGroup){
+    public void doFinalAnimation(ViewGroup viewGroup){
         createLayoutParams(CellsFabric.lastTile, true);
         viewGroup.addView(CellsFabric.lastTile);
-        int animValue = 10;
-        ValueAnimator animation = ValueAnimator.ofInt(animValue);
-        animation.setDuration(500);
-        animation.addUpdateListener(valueAnimator -> {
-            for (int i = 0; i < viewGroup.getChildCount(); i++) {
-                View view = viewGroup.getChildAt(i);
-                Integer animatedValue = ITEM_MARGIN + (Integer) animation.getAnimatedValue();
-                view.setY(view.getY() + animatedValue);
-                view.setX(view.getX() + animatedValue);
-            }
-        });
-        animation.addListener(new Animator.AnimatorListener() {
-            @Override
-            public void onAnimationStart(Animator animator) {
-
-            }
-
-            @Override
-            public void onAnimationEnd(Animator animator) {
-
-                int animValue = 10 + ITEM_MARGIN;
-                ValueAnimator animation = ValueAnimator.ofInt(animValue);
-                animation.setDuration(500);
-                animation.addUpdateListener(valueAnimator -> {
-                    for (int i = 0; i < viewGroup.getChildCount(); i++) {
-                        View view = viewGroup.getChildAt(i);
-                        Integer animatedValue = animValue - (Integer) animation.getAnimatedValue();
-                        view.setY(view.getY() - animatedValue);
-                        view.setX(view.getX() - animatedValue);
-                    }
-                });
-                animation.start();
-            }
-
-            @Override
-            public void onAnimationCancel(Animator animator) {
-
-            }
-
-            @Override
-            public void onAnimationRepeat(Animator animator) {
-
-            }
-        });
-        animation.start();
+        for (int i = 0; i < viewGroup.getChildCount(); i++) {
+            View view = viewGroup.getChildAt(i);
+            Utils.createViewRotateAnimation(0, 360, 1000, view);
+        }
     }
 
     public int getBoardWidth() {

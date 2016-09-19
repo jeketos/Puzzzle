@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     >
     <item android:title="@string/field_size"
           android:enabled="false"/>
@@ -17,6 +18,8 @@
               android:id="@+id/x6x6"/>
     </group>
     <item android:title="@string/add_image"
+          app:showAsAction="always"
+          android:icon="@drawable/ic_add_a_photo"
           android:id="@+id/add_image"/>
 
 </menu>
