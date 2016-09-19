@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Puzzzle</string>
+    <string name="add_image">Додати зображення</string>
+    <string name="field_size">Розміри поля</string>
+    <string name="from_gallery">Вибрати з галереї</string>
+    <string name="take_photo">Зробити за допомогою камери</string>
+    <string name="photo_dialog_title">Додати зображення</string>
+    <string name="permission_read_denied">Доступ до читання з внутрішнього накопичувача заборонен</string>
+    <string name="permission_camera_denied">Доступ до камери заборонен</string>
+</resources>
