@@ -3,7 +3,10 @@ package com.eugenekotsogub.puzzzle.util;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.view.View;
 import android.view.animation.Animation;
@@ -54,6 +57,16 @@ public class Utils {
         rotateAnimation.setFillAfter(true);
         rotateAnimation.setDuration(time);
         viewToAnimate.startAnimation(rotateAnimation);
+    }
+
+    public static void setBackground(View view, Bitmap bitmap) {
+        BitmapDrawable bitmapDrawable = new BitmapDrawable(view.getResources(), bitmap);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN){
+            //noinspection deprecation
+            view.setBackgroundDrawable(bitmapDrawable);
+        } else {
+            view.setBackground(bitmapDrawable);
+        }
     }
 
 }
