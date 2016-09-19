@@ -3,12 +3,11 @@ package com.eugenekotsogub.puzzzle.cell;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
-import android.os.Build;
 import android.text.TextUtils;
 
 import com.eugenekotsogub.puzzzle.Coordinate;
 import com.eugenekotsogub.puzzzle.R;
+import com.eugenekotsogub.puzzzle.util.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,13 +28,13 @@ public class CellsFabric {
                 Coordinate coordinate = shuffled.get(i*row + j);
                 if(!(coordinate.row == row -1 && coordinate.column == column - 1)){
                     CellView cellView = new CellView(context);
-                    setBackground(cellView, imageTiles.get(coordinate.row*row + coordinate.column));
+                    Utils.setBackground(cellView, imageTiles.get(coordinate.row*row + coordinate.column));
                     cellView.setAnchorCoordiates(coordinate);
                     cellView.setCurrentCoordinate(i,j);
                     cells.add(cellView);
                 } else {
                     CellView cellView = new CellView(context);
-                    setBackground(cellView, imageTiles.get(coordinate.row*row + coordinate.column));
+                    Utils.setBackground(cellView, imageTiles.get(coordinate.row*row + coordinate.column));
                     cellView.setAnchorCoordiates(coordinate);
                     cellView.setCurrentCoordinate(i,j);
                     lastTile = cellView;
@@ -45,15 +44,6 @@ public class CellsFabric {
         return cells;
     }
 
-    private static void setBackground(CellView view, Bitmap bitmap) {
-        BitmapDrawable bitmapDrawable = new BitmapDrawable(view.getResources(), bitmap);
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN){
-            //noinspection deprecation
-            view.setBackgroundDrawable(bitmapDrawable);
-        } else {
-            view.setBackground(bitmapDrawable);
-        }
-    }
 
     public static List<Bitmap> getImageTiles(Context context, String imagePath, int column, int row){
         List<Bitmap> list = new ArrayList<>();

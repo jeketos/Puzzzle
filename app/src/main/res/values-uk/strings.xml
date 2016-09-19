@@ -8,4 +8,5 @@
     <string name="photo_dialog_title">Додати зображення</string>
     <string name="permission_read_denied">Доступ до читання з внутрішнього накопичувача заборонен</string>
     <string name="permission_camera_denied">Доступ до камери заборонен</string>
+    <string name="show_image">Показати картинку</string>
 </resources>

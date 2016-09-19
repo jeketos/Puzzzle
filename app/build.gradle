@@ -24,7 +24,7 @@ android {
         minSdkVersion 15
         targetSdkVersion 24
         versionCode 1
-        versionName "1.4"
+        versionName "1.0"
     }
     buildTypes {
         release {
@@ -45,13 +45,15 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'
     compile 'com.jakewharton.timber:timber:4.1.1'
-    compile 'com.android.support:appcompat-v7:24.1.1'
+
     compile 'com.jakewharton:butterknife:8.2.1'
     apt 'com.jakewharton:butterknife-compiler:8.2.1'
     compile 'io.reactivex:rxandroid:1.1.0'
-    def support_version = '24.1.1'
+    def support_version = '24.2.1'
+    compile "com.android.support:appcompat-v7:$support_version"
     compile "com.android.support:appcompat-v7:$support_version"
     compile "com.android.support:recyclerview-v7:$support_version"
+    compile "com.android.support:percent:$support_version"
     compile('com.crashlytics.sdk.android:crashlytics:2.6.2@aar') {
         transitive = true;
     }

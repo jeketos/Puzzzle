@@ -5,19 +5,27 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.AppCompatButton;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.widget.GridLayout;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
@@ -29,6 +37,7 @@ import com.eugenekotsogub.puzzzle.util.Permission;
 import com.eugenekotsogub.puzzzle.util.Utils;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.List;
 
 import butterknife.BindView;
@@ -60,6 +69,7 @@ public class PuzzzleActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setOptionsMenuAsAction();
         if(savedInstanceState != null){
             photoPath = savedInstanceState.getString(PHOTO_PATH);
             columnCount = savedInstanceState.getInt(COLUMN_COUNT);
@@ -70,6 +80,19 @@ public class PuzzzleActivity extends AppCompatActivity {
         ButterKnife.bind(this);
         size = getBoardWidth();
         init();
+    }
+
+    private void setOptionsMenuAsAction() {
+        try {
+            ViewConfiguration config = ViewConfiguration.get(this);
+            Field menuKeyField = ViewConfiguration.class.getDeclaredField("sHasPermanentMenuKey");
+            if(menuKeyField != null) {
+                menuKeyField.setAccessible(true);
+                menuKeyField.setBoolean(config, false);
+            }
+        } catch (Exception ex) {
+            // Ignore
+        }
     }
 
     @Override
@@ -155,7 +178,7 @@ public class PuzzzleActivity extends AppCompatActivity {
             new Handler().postDelayed(() -> {
                 clearViewTouch(layout);
                 doFinalAnimation(layout);
-                Toast.makeText(PuzzzleActivity.this, "Ай да молодец! Выиграл!", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(PuzzzleActivity.this, "Ай да молодец! Выиграл!", Toast.LENGTH_SHORT).show();
             }, OnMoveTouchListener.ANIMATION_DURATION);
         }
     }
@@ -181,13 +204,43 @@ public class PuzzzleActivity extends AppCompatActivity {
         layout.setLayoutParams(params);
         layout.setColumnCount(columnCount);
         layout.setRowCount(rowCount);
+        //noinspection ResourceType
+        layout.setId(15);
         for (CellView view : cells) {
             view.setOnTouchListener(swipeListener);
             createLayoutParams(view, false);
             layout.addView(view);
         }
-
+        AppCompatButton button = createShowImageButton();
         mainContainer.addView(layout);
+        mainContainer.addView(button);
+
+    }
+
+    @NonNull
+    private AppCompatButton createShowImageButton() {
+        AppCompatButton button = new AppCompatButton(this);
+        button.setText(R.string.show_image);
+        RelativeLayout.LayoutParams p = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+        p.addRule(RelativeLayout.BELOW, layout.getId());
+        p.addRule(RelativeLayout.CENTER_HORIZONTAL);
+        button.setLayoutParams(p);
+        button.setOnClickListener(v -> {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            View view = LayoutInflater.from(this).inflate(R.layout.item_full_screen_image, null);
+            ImageView imageView = (ImageView) view.findViewById(R.id.image_view);
+            Bitmap image;
+            if (TextUtils.isEmpty(photoPath)){
+                image = BitmapFactory.decodeResource(getResources(), R.drawable.cat);
+            } else {
+                image = BitmapFactory.decodeFile(photoPath);
+            }
+            imageView.setImageDrawable(new BitmapDrawable(getResources(), image));
+            builder.setView(view);
+            builder.show();
+        });
+        return button;
     }
 
     private void createLayoutParams(CellView view, boolean isAnchor) {
