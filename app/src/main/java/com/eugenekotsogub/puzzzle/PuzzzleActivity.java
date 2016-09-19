@@ -22,6 +22,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.widget.GridLayout;
 import android.widget.ImageView;
@@ -36,6 +37,7 @@ import com.eugenekotsogub.puzzzle.util.Permission;
 import com.eugenekotsogub.puzzzle.util.Utils;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.List;
 
 import butterknife.BindView;
@@ -67,6 +69,7 @@ public class PuzzzleActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setOptionsMenuAsAction();
         if(savedInstanceState != null){
             photoPath = savedInstanceState.getString(PHOTO_PATH);
             columnCount = savedInstanceState.getInt(COLUMN_COUNT);
@@ -77,6 +80,19 @@ public class PuzzzleActivity extends AppCompatActivity {
         ButterKnife.bind(this);
         size = getBoardWidth();
         init();
+    }
+
+    private void setOptionsMenuAsAction() {
+        try {
+            ViewConfiguration config = ViewConfiguration.get(this);
+            Field menuKeyField = ViewConfiguration.class.getDeclaredField("sHasPermanentMenuKey");
+            if(menuKeyField != null) {
+                menuKeyField.setAccessible(true);
+                menuKeyField.setBoolean(config, false);
+            }
+        } catch (Exception ex) {
+            // Ignore
+        }
     }
 
     @Override
