@@ -183,21 +183,6 @@ public class PuzzzleActivity extends AppCompatActivity {
             }
             return true;
         });
-//                setOnClickListener(v -> {
-//            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-//            @SuppressLint("InflateParams")
-//            View view = LayoutInflater.from(this).inflate(R.layout.item_full_screen_image, null);
-//            ImageView imageView = (ImageView) view.findViewById(R.id.image_view);
-//            Bitmap image;
-//            if (TextUtils.isEmpty(photoPath)){
-//                image = BitmapFactory.decodeResource(getResources(), R.drawable.cat);
-//            } else {
-//                image = BitmapFactory.decodeFile(photoPath);
-//            }
-//            imageView.setImageDrawable(new BitmapDrawable(getResources(), image));
-//            builder.setView(view);
-//            builder.show();
-//        });
     }
 
     //return shuffled coordinates

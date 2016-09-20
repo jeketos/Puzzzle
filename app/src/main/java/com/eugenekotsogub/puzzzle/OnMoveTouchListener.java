@@ -11,9 +11,9 @@ import com.eugenekotsogub.puzzzle.cell.CellView;
  * Created by eugene.kotsogub on 9/15/16.
  *
  */
-public abstract class OnMoveTouchListener implements View.OnTouchListener {
+abstract class OnMoveTouchListener implements View.OnTouchListener {
 
-    public static final int ANIMATION_DURATION = 50;
+    static final int ANIMATION_DURATION = 50;
     private float dX;
     private float dY;
     private float viewX;
