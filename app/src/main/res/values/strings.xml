@@ -12,4 +12,6 @@
     <string name="permission_read_denied">Read internal storage permission is denied</string>
     <string name="permission_camera_denied">Camera permission is denied</string>
     <string name="show_image">Show image</string>
+    <string name="number_of_turns">Turn count:</string>
+    <string name="time">Time:</string>
 </resources>

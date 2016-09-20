@@ -9,4 +9,6 @@
     <string name="permission_read_denied">Доступ к чтению из внутреннего накопителя запрещен</string>
     <string name="permission_camera_denied">Доступ к камере запрещен</string>
     <string name="show_image">Показать картинку</string>
+    <string name="number_of_turns">Количество ходов:</string>
+    <string name="time">Время:</string>
 </resources>
