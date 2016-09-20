@@ -154,22 +154,13 @@ public class PuzzzleActivity extends AppCompatActivity {
                 .subscribe(coordinates -> {
                     cells = CellsFabric.create(this, photoPath, coordinates, columnCount, rowCount);
                     draw(cells);
+                    setNumbersVisibility();
                     hideProgressDialog();
                 }, error -> {
                     hideProgressDialog();
                     error.printStackTrace();
                 });
-        showHideNumbers.setOnClickListener(v ->{
-            if(showHideNumbers.getTag().equals("visible")){
-                showHideNumbers.setTag("invisible");
-                showHideNumbers.setImageResource(R.drawable.ic_visible_off);
-                CellsFabric.hideNumbers(cells);
-            } else {
-                showHideNumbers.setTag("visible");
-                showHideNumbers.setImageResource(R.drawable.ic_visible);
-                CellsFabric.showNumbers(cells, rowCount);
-            }
-        });
+        showHideNumbers.setOnClickListener(v -> changeNumbersVisibility());
         showImage.setOnTouchListener((view, event) -> {
             switch (event.getAction())
             {
@@ -183,6 +174,27 @@ public class PuzzzleActivity extends AppCompatActivity {
             }
             return true;
         });
+    }
+
+    private void changeNumbersVisibility() {
+        if(showHideNumbers.getTag().equals("visible")){
+            showHideNumbers.setTag("invisible");
+            showHideNumbers.setImageResource(R.drawable.ic_visible_off);
+            CellsFabric.hideNumbers(cells);
+        } else {
+            showHideNumbers.setTag("visible");
+            showHideNumbers.setImageResource(R.drawable.ic_visible);
+            CellsFabric.showNumbers(cells, rowCount);
+        }
+    }
+    private void setNumbersVisibility() {
+        if(showHideNumbers.getTag().equals("visible")){
+            showHideNumbers.setImageResource(R.drawable.ic_visible);
+            CellsFabric.showNumbers(cells, rowCount);
+        } else {
+            showHideNumbers.setImageResource(R.drawable.ic_visible_off);
+            CellsFabric.hideNumbers(cells);
+        }
     }
 
     //return shuffled coordinates
