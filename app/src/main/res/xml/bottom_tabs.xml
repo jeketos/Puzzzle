@@ -1,0 +1,10 @@
+<tabs>
+    <tab
+        id="@+id/tab_show_image"
+        icon="@drawable/ic_show_image"
+        title="@string/show_image" />
+    <tab
+        id="@+id/tab_numbers"
+        icon="@drawable/ic_visible"
+        title="@string/show_hide_numbers" />
+</tabs>

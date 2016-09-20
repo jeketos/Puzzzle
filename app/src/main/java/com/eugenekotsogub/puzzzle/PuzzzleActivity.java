@@ -5,28 +5,25 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.AppCompatButton;
+import android.support.v7.widget.AppCompatImageButton;
+import android.support.v7.widget.AppCompatImageView;
 import android.text.TextUtils;
-import android.util.DisplayMetrics;
 import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.widget.GridLayout;
-import android.widget.ImageView;
-import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
@@ -38,12 +35,16 @@ import com.eugenekotsogub.puzzzle.util.Utils;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.fabric.sdk.android.Fabric;
 import rx.Observable;
+import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
@@ -54,32 +55,61 @@ public class PuzzzleActivity extends AppCompatActivity {
     public static final String PHOTO_PATH = "photo_path";
     public static final String COLUMN_COUNT = "column_count";
     public static final String ROW_COUNT = "row_count";
+    public static final String TURNS_COUNT = "turns_count";
+    public static final String TIME_IN_SECONDS = "time_in_seconds";
     @BindView(R.id.main_container)
     ViewGroup mainContainer;
 
+    @BindView(R.id.grid_layout)
+    GridLayout layout;
+    @BindView(R.id.turns_count)
+    TextView turnsText;
+    @BindView(R.id.time_text)
+    TextView timeText;
+    @BindView(R.id.show_image)
+    View showImage;
+    @BindView(R.id.show_hide_numbers)
+    AppCompatImageButton showHideNumbers;
+    @BindView(R.id.full_image)
+    AppCompatImageView fullImage;
     List<CellView> cells;
     int columnCount = 3, rowCount = 3;
-    private GridLayout layout;
-    private int size;
     private ProgressDialog progressDialog;
     private String toCameraPath;
     private String photoPath;
     public static  int ITEM_MARGIN = 2;
+    private int turnsCount = 0;
+    private long timeInSeconds = 0;
+    private long savedTime = 1;
+    private Subscription timerSubscribe;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setOptionsMenuAsAction();
+        Fabric.with(this, new Crashlytics());
+        setContentView(R.layout.activity_puzzzle);
+        ButterKnife.bind(this);
         if(savedInstanceState != null){
             photoPath = savedInstanceState.getString(PHOTO_PATH);
             columnCount = savedInstanceState.getInt(COLUMN_COUNT);
             rowCount = savedInstanceState.getInt(ROW_COUNT);
+            turnsCount = savedInstanceState.getInt(TURNS_COUNT);
+            savedTime = savedInstanceState.getLong(TIME_IN_SECONDS);
+            if(!TextUtils.isEmpty(photoPath)){
+                fullImage.setImageBitmap(BitmapFactory.decodeFile(photoPath));
+            }
+        } else {
+            init();
         }
-        Fabric.with(this, new Crashlytics());
-        setContentView(R.layout.activity_puzzzle);
-        ButterKnife.bind(this);
-        size = getBoardWidth();
-        init();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if(timerSubscribe != null) {
+            timerSubscribe.unsubscribe();
+        }
     }
 
     private void setOptionsMenuAsAction() {
@@ -100,10 +130,23 @@ public class PuzzzleActivity extends AppCompatActivity {
         outState.putString(PHOTO_PATH, photoPath);
         outState.putInt(COLUMN_COUNT, columnCount);
         outState.putInt(ROW_COUNT, rowCount);
+        outState.putInt(TURNS_COUNT, turnsCount);
+        outState.putLong(TIME_IN_SECONDS, timeInSeconds);
         super.onSaveInstanceState(outState);
     }
 
     private void init() {
+        turnsCount = 0;
+        timeInSeconds = 0;
+        savedTime = 1;
+        if(timerSubscribe != null){
+            timerSubscribe.unsubscribe();
+        }
+        if(!TextUtils.isEmpty(photoPath)){
+            fullImage.setImageBitmap(BitmapFactory.decodeFile(photoPath));
+        }
+        setTimeText(timeInSeconds);
+        turnsText.setText(String.format(Locale.getDefault(), "%d", turnsCount));
         showProgressDialog();
         Observable.fromCallable(this::createGame)
                 .subscribeOn(Schedulers.io())
@@ -116,6 +159,45 @@ public class PuzzzleActivity extends AppCompatActivity {
                     hideProgressDialog();
                     error.printStackTrace();
                 });
+        showHideNumbers.setOnClickListener(v ->{
+            if(showHideNumbers.getTag().equals("visible")){
+                showHideNumbers.setTag("invisible");
+                showHideNumbers.setImageResource(R.drawable.ic_visible_off);
+                CellsFabric.hideNumbers(cells);
+            } else {
+                showHideNumbers.setTag("visible");
+                showHideNumbers.setImageResource(R.drawable.ic_visible);
+                CellsFabric.showNumbers(cells, rowCount);
+            }
+        });
+        showImage.setOnTouchListener((view, event) -> {
+            switch (event.getAction())
+            {
+                case MotionEvent.ACTION_DOWN:
+                    fullImage.setVisibility(View.VISIBLE);
+                    break;
+                case MotionEvent.ACTION_UP:
+                    fullImage.setVisibility(View.GONE);
+                    break;
+
+            }
+            return true;
+        });
+//                setOnClickListener(v -> {
+//            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+//            @SuppressLint("InflateParams")
+//            View view = LayoutInflater.from(this).inflate(R.layout.item_full_screen_image, null);
+//            ImageView imageView = (ImageView) view.findViewById(R.id.image_view);
+//            Bitmap image;
+//            if (TextUtils.isEmpty(photoPath)){
+//                image = BitmapFactory.decodeResource(getResources(), R.drawable.cat);
+//            } else {
+//                image = BitmapFactory.decodeFile(photoPath);
+//            }
+//            imageView.setImageDrawable(new BitmapDrawable(getResources(), image));
+//            builder.setView(view);
+//            builder.show();
+//        });
     }
 
     //return shuffled coordinates
@@ -163,9 +245,31 @@ public class PuzzzleActivity extends AppCompatActivity {
     private OnMoveTouchListener swipeListener = new OnMoveTouchListener() {
         @Override
         protected void onMoveFinish(CellView view) {
+            setAndRunTimer(savedTime);
+            incrementAndShowTurnsCount();
             doMove(view);
         }
     };
+
+    private void setAndRunTimer(long startTime) {
+        if(timerSubscribe == null || timerSubscribe.isUnsubscribed()) {
+            timerSubscribe = Observable.interval(1, TimeUnit.SECONDS)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(time -> {
+                        setTimeText(startTime + time);
+                    });
+        }
+    }
+
+    private void setTimeText(Long time) {
+        timeText.setText(new SimpleDateFormat("mm:ss", Locale.getDefault()).format(time*1000));
+        timeInSeconds = time;
+    }
+
+    private void incrementAndShowTurnsCount() {
+        turnsText.setText(String.format(Locale.getDefault(), "%d", ++turnsCount));
+    }
 
     private void doMove(CellView v) {
         Coordinate free = GameView.INSTANCE.getFreeCoordinate();
@@ -178,7 +282,6 @@ public class PuzzzleActivity extends AppCompatActivity {
             new Handler().postDelayed(() -> {
                 clearViewTouch(layout);
                 doFinalAnimation(layout);
-//                Toast.makeText(PuzzzleActivity.this, "Ай да молодец! Выиграл!", Toast.LENGTH_SHORT).show();
             }, OnMoveTouchListener.ANIMATION_DURATION);
         }
     }
@@ -189,58 +292,19 @@ public class PuzzzleActivity extends AppCompatActivity {
                 return false;
             }
         }
+        timerSubscribe.unsubscribe();
         return true;
     }
 
     private void draw(List<CellView> cells) {
-        if(layout == null) {
-            layout = new GridLayout(this);
-        }
-        mainContainer.removeAllViews();
         layout.removeAllViews();
-        layout.setMotionEventSplittingEnabled(false);
-        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(size, size);
-        params.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
-        layout.setLayoutParams(params);
         layout.setColumnCount(columnCount);
         layout.setRowCount(rowCount);
-        //noinspection ResourceType
-        layout.setId(15);
         for (CellView view : cells) {
             view.setOnTouchListener(swipeListener);
             createLayoutParams(view, false);
             layout.addView(view);
         }
-        AppCompatButton button = createShowImageButton();
-        mainContainer.addView(layout);
-        mainContainer.addView(button);
-
-    }
-
-    @NonNull
-    private AppCompatButton createShowImageButton() {
-        AppCompatButton button = new AppCompatButton(this);
-        button.setText(R.string.show_image);
-        RelativeLayout.LayoutParams p = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT);
-        p.addRule(RelativeLayout.BELOW, layout.getId());
-        p.addRule(RelativeLayout.CENTER_HORIZONTAL);
-        button.setLayoutParams(p);
-        button.setOnClickListener(v -> {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            View view = LayoutInflater.from(this).inflate(R.layout.item_full_screen_image, null);
-            ImageView imageView = (ImageView) view.findViewById(R.id.image_view);
-            Bitmap image;
-            if (TextUtils.isEmpty(photoPath)){
-                image = BitmapFactory.decodeResource(getResources(), R.drawable.cat);
-            } else {
-                image = BitmapFactory.decodeFile(photoPath);
-            }
-            imageView.setImageDrawable(new BitmapDrawable(getResources(), image));
-            builder.setView(view);
-            builder.show();
-        });
-        return button;
     }
 
     private void createLayoutParams(CellView view, boolean isAnchor) {
@@ -254,10 +318,10 @@ public class PuzzzleActivity extends AppCompatActivity {
             p.rowSpec = GridLayout.spec(view.getCurrentCoordinate().row);
         }
         view.setLayoutParams(p);
-        view.getLayoutParams().height = size/rowCount - 2*ITEM_MARGIN;
-        view.getLayoutParams().width = size/columnCount - 2*ITEM_MARGIN;
+        view.getLayoutParams().height = layout.getHeight()/rowCount - 2*ITEM_MARGIN;
+        view.getLayoutParams().width = layout.getWidth()/columnCount - 2*ITEM_MARGIN;
         view.setGravity(Gravity.CENTER);
-        view.setTextSize((size/rowCount - 2*ITEM_MARGIN)/5);
+        view.setTextSize((layout.getWidth()/rowCount - 2*ITEM_MARGIN)/5);
     }
 
     public void clearViewTouch(ViewGroup viewGroup){
@@ -273,11 +337,6 @@ public class PuzzzleActivity extends AppCompatActivity {
             View view = viewGroup.getChildAt(i);
             Utils.createViewRotateAnimation(0, 360, 1000, view);
         }
-    }
-
-    public int getBoardWidth() {
-        DisplayMetrics dm = getResources().getDisplayMetrics();
-        return dm.widthPixels - 2*getResources().getDimensionPixelSize(R.dimen.activity_horizontal_margin);
     }
 
     public void showProgressDialog(){
