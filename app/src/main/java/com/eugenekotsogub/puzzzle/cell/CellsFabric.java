@@ -33,6 +33,7 @@ public class CellsFabric {
                     cells.add(cellView);
                 } else {
                     lastTile = createCellView(context, row, imageTiles, i, j, coordinate);
+                    lastTile.setText(null);
                 }
             }
         }
@@ -44,7 +45,8 @@ public class CellsFabric {
         CellView cellView = new CellView(context);
         Utils.setBackground(cellView, imageTiles.get(coordinate.row*row + coordinate.column));
         cellView.setAnchorCoordiates(coordinate);
-        cellView.setText(""+(coordinate.row*row + coordinate.column + 1));
+        String number = Integer.toString((coordinate.row*row + coordinate.column + 1));
+        cellView.setText(number);
         cellView.setTextColor(ContextCompat.getColor(context,R.color.colorAccent));
         cellView.setShadowLayer(2,0,1,ContextCompat.getColor(context,R.color.black));
         cellView.setCurrentCoordinate(i,j);
@@ -52,7 +54,7 @@ public class CellsFabric {
     }
 
 
-    public static List<Bitmap> getImageTiles(Context context, String imagePath, int column, int row){
+    private static List<Bitmap> getImageTiles(Context context, String imagePath, int column, int row){
         List<Bitmap> list = new ArrayList<>();
         Bitmap image;
         if (TextUtils.isEmpty(imagePath)){
@@ -76,12 +78,16 @@ public class CellsFabric {
                 cells) {
             view.setText(null);
         }
+        lastTile.setText(null);
     }
 
     public static void showNumbers(List<CellView> cells, int row) {
         for (CellView view :
                 cells) {
-            view.setText(""+(view.getAnchorCoordinate().row*row + view.getAnchorCoordinate().column + 1));
+            String number = Integer.toString(view.getAnchorCoordinate().row * row + view.getAnchorCoordinate().column + 1);
+            view.setText(number);
         }
+        String num = Integer.toString(row * row);
+        lastTile.setText(num);
     }
 }
