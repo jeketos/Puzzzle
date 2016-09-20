@@ -3,6 +3,8 @@ package com.eugenekotsogub.puzzzle.cell;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 
 import com.eugenekotsogub.puzzzle.Coordinate;
@@ -27,21 +29,26 @@ public class CellsFabric {
             for (int j = 0; j < column; j++) {
                 Coordinate coordinate = shuffled.get(i*row + j);
                 if(!(coordinate.row == row -1 && coordinate.column == column - 1)){
-                    CellView cellView = new CellView(context);
-                    Utils.setBackground(cellView, imageTiles.get(coordinate.row*row + coordinate.column));
-                    cellView.setAnchorCoordiates(coordinate);
-                    cellView.setCurrentCoordinate(i,j);
+                    CellView cellView = createCellView(context, row, imageTiles, i, j, coordinate);
                     cells.add(cellView);
                 } else {
-                    CellView cellView = new CellView(context);
-                    Utils.setBackground(cellView, imageTiles.get(coordinate.row*row + coordinate.column));
-                    cellView.setAnchorCoordiates(coordinate);
-                    cellView.setCurrentCoordinate(i,j);
-                    lastTile = cellView;
+                    lastTile = createCellView(context, row, imageTiles, i, j, coordinate);
                 }
             }
         }
         return cells;
+    }
+
+    @NonNull
+    private static CellView createCellView(Context context, int row, List<Bitmap> imageTiles, int i, int j, Coordinate coordinate) {
+        CellView cellView = new CellView(context);
+        Utils.setBackground(cellView, imageTiles.get(coordinate.row*row + coordinate.column));
+        cellView.setAnchorCoordiates(coordinate);
+        cellView.setText(""+(coordinate.row*row + coordinate.column + 1));
+        cellView.setTextColor(ContextCompat.getColor(context,R.color.colorAccent));
+        cellView.setShadowLayer(2,0,1,ContextCompat.getColor(context,R.color.black));
+        cellView.setCurrentCoordinate(i,j);
+        return cellView;
     }
 
 

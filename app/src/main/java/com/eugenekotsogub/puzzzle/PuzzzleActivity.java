@@ -97,8 +97,6 @@ public class PuzzzleActivity extends AppCompatActivity {
         } else {
             init();
         }
-
-
     }
 
     @Override
