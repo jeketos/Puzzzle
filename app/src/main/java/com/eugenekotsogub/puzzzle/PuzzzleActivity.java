@@ -1,30 +1,28 @@
 package com.eugenekotsogub.puzzzle;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.AppCompatImageButton;
+import android.support.v7.widget.AppCompatImageView;
 import android.text.TextUtils;
 import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.widget.GridLayout;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -70,6 +68,10 @@ public class PuzzzleActivity extends AppCompatActivity {
     TextView timeText;
     @BindView(R.id.show_image)
     View showImage;
+    @BindView(R.id.show_hide_numbers)
+    AppCompatImageButton showHideNumbers;
+    @BindView(R.id.full_image)
+    AppCompatImageView fullImage;
     List<CellView> cells;
     int columnCount = 3, rowCount = 3;
     private ProgressDialog progressDialog;
@@ -94,6 +96,9 @@ public class PuzzzleActivity extends AppCompatActivity {
             rowCount = savedInstanceState.getInt(ROW_COUNT);
             turnsCount = savedInstanceState.getInt(TURNS_COUNT);
             savedTime = savedInstanceState.getLong(TIME_IN_SECONDS);
+            if(!TextUtils.isEmpty(photoPath)){
+                fullImage.setImageBitmap(BitmapFactory.decodeFile(photoPath));
+            }
         } else {
             init();
         }
@@ -102,7 +107,9 @@ public class PuzzzleActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        timerSubscribe.unsubscribe();
+        if(timerSubscribe != null) {
+            timerSubscribe.unsubscribe();
+        }
     }
 
     private void setOptionsMenuAsAction() {
@@ -135,6 +142,9 @@ public class PuzzzleActivity extends AppCompatActivity {
         if(timerSubscribe != null){
             timerSubscribe.unsubscribe();
         }
+        if(!TextUtils.isEmpty(photoPath)){
+            fullImage.setImageBitmap(BitmapFactory.decodeFile(photoPath));
+        }
         setTimeText(timeInSeconds);
         turnsText.setText(String.format(Locale.getDefault(), "%d", turnsCount));
         showProgressDialog();
@@ -149,6 +159,45 @@ public class PuzzzleActivity extends AppCompatActivity {
                     hideProgressDialog();
                     error.printStackTrace();
                 });
+        showHideNumbers.setOnClickListener(v ->{
+            if(showHideNumbers.getTag().equals("visible")){
+                showHideNumbers.setTag("invisible");
+                showHideNumbers.setImageResource(R.drawable.ic_visible_off);
+                CellsFabric.hideNumbers(cells);
+            } else {
+                showHideNumbers.setTag("visible");
+                showHideNumbers.setImageResource(R.drawable.ic_visible);
+                CellsFabric.showNumbers(cells, rowCount);
+            }
+        });
+        showImage.setOnTouchListener((view, event) -> {
+            switch (event.getAction())
+            {
+                case MotionEvent.ACTION_DOWN:
+                    fullImage.setVisibility(View.VISIBLE);
+                    break;
+                case MotionEvent.ACTION_UP:
+                    fullImage.setVisibility(View.GONE);
+                    break;
+
+            }
+            return true;
+        });
+//                setOnClickListener(v -> {
+//            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+//            @SuppressLint("InflateParams")
+//            View view = LayoutInflater.from(this).inflate(R.layout.item_full_screen_image, null);
+//            ImageView imageView = (ImageView) view.findViewById(R.id.image_view);
+//            Bitmap image;
+//            if (TextUtils.isEmpty(photoPath)){
+//                image = BitmapFactory.decodeResource(getResources(), R.drawable.cat);
+//            } else {
+//                image = BitmapFactory.decodeFile(photoPath);
+//            }
+//            imageView.setImageDrawable(new BitmapDrawable(getResources(), image));
+//            builder.setView(view);
+//            builder.show();
+//        });
     }
 
     //return shuffled coordinates
@@ -256,22 +305,6 @@ public class PuzzzleActivity extends AppCompatActivity {
             createLayoutParams(view, false);
             layout.addView(view);
         }
-        showImage.setOnClickListener(v -> {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            @SuppressLint("InflateParams")
-            View view = LayoutInflater.from(this).inflate(R.layout.item_full_screen_image, null);
-            ImageView imageView = (ImageView) view.findViewById(R.id.image_view);
-            Bitmap image;
-            if (TextUtils.isEmpty(photoPath)){
-                image = BitmapFactory.decodeResource(getResources(), R.drawable.cat);
-            } else {
-                image = BitmapFactory.decodeFile(photoPath);
-            }
-            imageView.setImageDrawable(new BitmapDrawable(getResources(), image));
-            builder.setView(view);
-            builder.show();
-        });
-
     }
 
     private void createLayoutParams(CellView view, boolean isAnchor) {

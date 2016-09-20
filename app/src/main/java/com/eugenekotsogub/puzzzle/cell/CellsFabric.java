@@ -71,4 +71,17 @@ public class CellsFabric {
         return list;
     }
 
+    public static void hideNumbers(List<CellView> cells) {
+        for (CellView view :
+                cells) {
+            view.setText(null);
+        }
+    }
+
+    public static void showNumbers(List<CellView> cells, int row) {
+        for (CellView view :
+                cells) {
+            view.setText(""+(view.getAnchorCoordinate().row*row + view.getAnchorCoordinate().column + 1));
+        }
+    }
 }

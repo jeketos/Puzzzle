@@ -49,6 +49,8 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"/>
 
+
+
     <GridLayout
         android:id="@+id/grid_layout"
         app:layout_widthPercent="100%"
@@ -59,14 +61,49 @@
         android:layout_alignParentStart="true">
 
     </GridLayout>
+    <android.support.v7.widget.AppCompatImageView
+        android:id="@+id/full_image"
+        app:layout_widthPercent="100%"
+        app:layout_aspectRatio="100%"
+        android:splitMotionEvents="false"
+        android:layout_centerVertical="true"
+        android:layout_alignParentLeft="true"
+        android:visibility="gone"
+        tools:visibility="visible"
+        android:src="@drawable/cat"
+        android:layout_alignParentStart="true"/>
 
-    <android.support.v7.widget.AppCompatButton
-        android:id="@+id/show_image"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/grid_layout"
-        android:text="@string/show_image"
-        android:layout_centerHorizontal="true"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal"
+        >
+        <View
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"/>
+        <android.support.v7.widget.AppCompatImageButton
+            android:id="@+id/show_image"
+            android:layout_width="wrap_content"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_show_image"
+            android:layout_height="wrap_content"/>
+        <View
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"/>
+        <android.support.v7.widget.AppCompatImageButton
+            android:id="@+id/show_hide_numbers"
+            android:layout_width="wrap_content"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_visible"
+            android:tag="visible"
+            android:layout_height="wrap_content"/>
+        <View
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"/>
 
-
+    </LinearLayout>
 </android.support.percent.PercentRelativeLayout>
