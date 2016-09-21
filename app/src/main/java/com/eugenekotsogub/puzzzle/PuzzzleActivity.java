@@ -42,6 +42,7 @@ import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 import io.fabric.sdk.android.Fabric;
 import rx.Observable;
 import rx.Subscription;
@@ -82,6 +83,10 @@ public class PuzzzleActivity extends AppCompatActivity {
     private long timeInSeconds = 0;
     private long savedTime = 1;
     private Subscription timerSubscribe;
+
+    @OnClick(R.id.rerun) void onRerunClick(){
+        init();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
