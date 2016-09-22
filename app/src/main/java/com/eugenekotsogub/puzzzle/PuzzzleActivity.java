@@ -4,17 +4,20 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatImageButton;
 import android.support.v7.widget.AppCompatImageView;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -29,9 +32,13 @@ import android.widget.Toast;
 import com.crashlytics.android.Crashlytics;
 import com.eugenekotsogub.puzzzle.cell.CellView;
 import com.eugenekotsogub.puzzzle.cell.CellsFabric;
+import com.eugenekotsogub.puzzzle.listener.OnMoveTouchListener;
 import com.eugenekotsogub.puzzzle.util.ImageUtils;
 import com.eugenekotsogub.puzzzle.util.Permission;
 import com.eugenekotsogub.puzzzle.util.Utils;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.games.Games;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -49,8 +56,9 @@ import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
-public class PuzzzleActivity extends AppCompatActivity {
+public class PuzzzleActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
+    private static final String TAG = "PuzzzleActivity";
     private static final int REQUEST_CAMERA = 20;
     private static final int REQUEST_GALLERY = 21;
     public static final String PHOTO_PATH = "photo_path";
@@ -58,6 +66,7 @@ public class PuzzzleActivity extends AppCompatActivity {
     public static final String ROW_COUNT = "row_count";
     public static final String TURNS_COUNT = "turns_count";
     public static final String TIME_IN_SECONDS = "time_in_seconds";
+    public static final String FIELD_SIZE = "field_size";
     @BindView(R.id.main_container)
     ViewGroup mainContainer;
 
@@ -83,6 +92,9 @@ public class PuzzzleActivity extends AppCompatActivity {
     private long timeInSeconds = 0;
     private long savedTime = 1;
     private Subscription timerSubscribe;
+    FieldSize fieldSize = FieldSize.X3_3;
+    GoogleApiClient googleApiClient;
+
 
     @OnClick(R.id.rerun) void onRerunClick(){
         init();
@@ -95,17 +107,38 @@ public class PuzzzleActivity extends AppCompatActivity {
         Fabric.with(this, new Crashlytics());
         setContentView(R.layout.activity_puzzzle);
         ButterKnife.bind(this);
+        googleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(Games.API).addScope(Games.SCOPE_GAMES)
+                .build();
         if(savedInstanceState != null){
             photoPath = savedInstanceState.getString(PHOTO_PATH);
             columnCount = savedInstanceState.getInt(COLUMN_COUNT);
             rowCount = savedInstanceState.getInt(ROW_COUNT);
             turnsCount = savedInstanceState.getInt(TURNS_COUNT);
             savedTime = savedInstanceState.getLong(TIME_IN_SECONDS);
+            fieldSize = (FieldSize) savedInstanceState.getSerializable(FIELD_SIZE);
             if(!TextUtils.isEmpty(photoPath)){
                 fullImage.setImageBitmap(BitmapFactory.decodeFile(photoPath));
             }
         } else {
             init();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if(googleApiClient != null  ) {
+            if (!googleApiClient.isConnected()) {
+                googleApiClient.connect();
+            }
         }
     }
 
@@ -137,6 +170,7 @@ public class PuzzzleActivity extends AppCompatActivity {
         outState.putInt(ROW_COUNT, rowCount);
         outState.putInt(TURNS_COUNT, turnsCount);
         outState.putLong(TIME_IN_SECONDS, timeInSeconds);
+        outState.putSerializable(FIELD_SIZE, fieldSize);
         super.onSaveInstanceState(outState);
     }
 
@@ -222,18 +256,22 @@ public class PuzzzleActivity extends AppCompatActivity {
             case R.id.x3x3:
                 columnCount = 3;
                 rowCount = 3;
+                fieldSize = FieldSize.X3_3;
                 break;
             case R.id.x4x4:
                 columnCount = 4;
                 rowCount = 4;
+                fieldSize = FieldSize.X4_4;
                 break;
             case R.id.x5x5:
                 columnCount = 5;
                 rowCount = 5;
+                fieldSize = FieldSize.X5_5;
                 break;
             case R.id.x6x6:
                 columnCount = 6;
                 rowCount = 6;
+                fieldSize = FieldSize.X6_6;
                 break;
             case R.id.add_image:
                 toGetPhotoDialog();
@@ -284,8 +322,38 @@ public class PuzzzleActivity extends AppCompatActivity {
             new Handler().postDelayed(() -> {
                 clearViewTouch(layout);
                 doFinalAnimation(layout);
+                sendLeadboard(fieldSize, timeInSeconds);
             }, OnMoveTouchListener.ANIMATION_DURATION);
         }
+    }
+
+    private void sendLeadboard(FieldSize fieldSize, long timeInSeconds) {
+        String leadboard = "";
+        String archivement = "";
+        switch (fieldSize){
+            case X3_3:
+                leadboard = getString(R.string.leaderboard_3x3);
+                archivement = getString(R.string.achievement_3x3_mastered);
+                break;
+            case X4_4:
+                leadboard = getString(R.string.leaderboard_4x4);
+                archivement = getString(R.string.achievement_4x4_mastered);
+                break;
+            case X5_5:
+                leadboard = getString(R.string.leaderboard_5x5);
+                archivement = getString(R.string.achievement_5x5_mastered);
+                break;
+            case X6_6:
+                leadboard = getString(R.string.leaderboard_6x6);
+                archivement = getString(R.string.achievement_6x6_mastered);
+                if(timeInSeconds < 5*60){
+                    Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_less_than_5));
+                }
+                break;
+        }
+        Games.Leaderboards.submitScore(googleApiClient, leadboard, timeInSeconds);
+        Games.Achievements.unlock(googleApiClient, archivement);
+
     }
 
     private boolean isPazzleDone() {
@@ -431,6 +499,28 @@ public class PuzzzleActivity extends AppCompatActivity {
                         photoPath = s;
                         if (photoPath != null) init();
                     }, Throwable::printStackTrace);
+        } else if(requestCode == 2001 && resultCode == Activity.RESULT_OK){
+            googleApiClient.connect();
+        }
+    }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        Log.d(TAG, "onConnected() called. Sign in successful!");
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        googleApiClient.connect();
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Log.d(TAG, "onConnectionFailed() called, result: " + connectionResult);
+        try {
+            connectionResult.startResolutionForResult(this, 2001);
+        } catch (IntentSender.SendIntentException e) {
+            e.printStackTrace();
         }
     }
 }

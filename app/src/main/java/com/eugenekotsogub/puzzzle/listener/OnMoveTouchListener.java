@@ -1,19 +1,22 @@
-package com.eugenekotsogub.puzzzle;
+package com.eugenekotsogub.puzzzle.listener;
 
 import android.animation.ObjectAnimator;
 import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.View;
 
+import com.eugenekotsogub.puzzzle.GameView;
+import com.eugenekotsogub.puzzzle.Move;
+import com.eugenekotsogub.puzzzle.PuzzzleActivity;
 import com.eugenekotsogub.puzzzle.cell.CellView;
 
 /**
  * Created by eugene.kotsogub on 9/15/16.
  *
  */
-abstract class OnMoveTouchListener implements View.OnTouchListener {
+ public abstract class OnMoveTouchListener implements View.OnTouchListener {
 
-    static final int ANIMATION_DURATION = 50;
+    public static final int ANIMATION_DURATION = 50;
     private float dX;
     private float dY;
     private float viewX;

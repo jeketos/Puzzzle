@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_id">668708475154</string>
+    <string name="package_name">com.eugenekotsogub.puzzzle</string>
+    <string name="leaderboard_3x3">CgkIkqKGkbsTEAIQAQ</string>
+    <string name="leaderboard_4x4">CgkIkqKGkbsTEAIQAg</string>
+    <string name="leaderboard_5x5">CgkIkqKGkbsTEAIQAw</string>
+    <string name="leaderboard_6x6">CgkIkqKGkbsTEAIQBA</string>
+    <string name="achievement_3x3_mastered">CgkIkqKGkbsTEAIQBQ</string>
+    <string name="achievement_4x4_mastered">CgkIkqKGkbsTEAIQBw</string>
+    <string name="achievement_5x5_mastered">CgkIkqKGkbsTEAIQBg</string>
+    <string name="achievement_6x6_mastered">CgkIkqKGkbsTEAIQCA</string>
+    <string name="achievement_less_than_5">CgkIkqKGkbsTEAIQCQ</string>
+</resources>
