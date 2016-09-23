@@ -22,6 +22,8 @@
         <meta-data
             android:name="io.fabric.ApiKey"
             android:value="45edc89727c84ee36d28b0f84d6d487d78a82dd0" />
+        <meta-data android:name="com.google.android.gms.games.APP_ID"
+                   android:value="@string/app_id" />
     </application>
 
     <uses-permission android:name="android.permission.INTERNET" />

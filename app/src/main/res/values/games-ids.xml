@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_id">668708475154</string>
+    <string name="package_name">com.eugenekotsogub.puzzzle</string>
+    <string name="achievement_3x3_mastered">CgkIkqKGkbsTEAIQBQ</string>
+    <string name="achievement_4x4_mastered">CgkIkqKGkbsTEAIQBw</string>
+    <string name="achievement_5x5_mastered">CgkIkqKGkbsTEAIQBg</string>
+    <string name="achievement_6x6_mastered">CgkIkqKGkbsTEAIQCA</string>
+    <string name="achievement_less_than_5_minute">CgkIkqKGkbsTEAIQCQ</string>
+    <string name="achievement_less_than_0.5_minute">CgkIkqKGkbsTEAIQCg</string>
+    <string name="achievement_less_than_1_minute">CgkIkqKGkbsTEAIQCw</string>
+    <string name="achievement_less_than_3_minute">CgkIkqKGkbsTEAIQDA</string>
+    <string name="achievement_win_all">CgkIkqKGkbsTEAIQDQ</string>
+    <string name="achievement_less_than_20_moves">CgkIkqKGkbsTEAIQDg</string>
+    <string name="achievement_less_than_100_moves">CgkIkqKGkbsTEAIQDw</string>
+    <string name="achievement_less_than_250_moves">CgkIkqKGkbsTEAIQEA</string>
+    <string name="achievement_less_than_500_moves">CgkIkqKGkbsTEAIQEQ</string>
+    <string name="leaderboard_3x3_time">CgkIkqKGkbsTEAIQAQ</string>
+    <string name="leaderboard_4x4_time">CgkIkqKGkbsTEAIQAg</string>
+    <string name="leaderboard_5x5_time">CgkIkqKGkbsTEAIQAw</string>
+    <string name="leaderboard_6x6_time">CgkIkqKGkbsTEAIQBA</string>
+    <string name="leaderboard_3x3_moves">CgkIkqKGkbsTEAIQEg</string>
+    <string name="leaderboard_4x4_moves">CgkIkqKGkbsTEAIQEw</string>
+    <string name="leaderboard_5x5_moves">CgkIkqKGkbsTEAIQFA</string>
+    <string name="leaderboard_6x6_moves">CgkIkqKGkbsTEAIQFQ</string>
+</resources>

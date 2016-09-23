@@ -2,19 +2,25 @@ package com.eugenekotsogub.puzzzle;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatImageButton;
 import android.support.v7.widget.AppCompatImageView;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -29,9 +35,14 @@ import android.widget.Toast;
 import com.crashlytics.android.Crashlytics;
 import com.eugenekotsogub.puzzzle.cell.CellView;
 import com.eugenekotsogub.puzzzle.cell.CellsFabric;
+import com.eugenekotsogub.puzzzle.listener.OnMoveTouchListener;
 import com.eugenekotsogub.puzzzle.util.ImageUtils;
 import com.eugenekotsogub.puzzzle.util.Permission;
 import com.eugenekotsogub.puzzzle.util.Utils;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.games.Games;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -42,14 +53,16 @@ import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 import io.fabric.sdk.android.Fabric;
 import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
-public class PuzzzleActivity extends AppCompatActivity {
+public class PuzzzleActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
+    private static final String TAG = "PuzzzleActivity";
     private static final int REQUEST_CAMERA = 20;
     private static final int REQUEST_GALLERY = 21;
     public static final String PHOTO_PATH = "photo_path";
@@ -57,13 +70,17 @@ public class PuzzzleActivity extends AppCompatActivity {
     public static final String ROW_COUNT = "row_count";
     public static final String TURNS_COUNT = "turns_count";
     public static final String TIME_IN_SECONDS = "time_in_seconds";
+    public static final String FIELD_SIZE = "field_size";
+    public static final int GOOGLE_API_CLIENT_RESOLUTION = 2001;
+    public static final String DIALOG_ERROR = "dialog_error";
+    public static final String RESOLVING_ERROR = "resolving_error";
     @BindView(R.id.main_container)
     ViewGroup mainContainer;
 
     @BindView(R.id.grid_layout)
     GridLayout layout;
-    @BindView(R.id.turns_count)
-    TextView turnsText;
+    @BindView(R.id.moves_count)
+    TextView movesText;
     @BindView(R.id.time_text)
     TextView timeText;
     @BindView(R.id.show_image)
@@ -78,10 +95,19 @@ public class PuzzzleActivity extends AppCompatActivity {
     private String toCameraPath;
     private String photoPath;
     public static  int ITEM_MARGIN = 2;
-    private int turnsCount = 0;
+    private int movesCount = 0;
     private long timeInSeconds = 0;
     private long savedTime = 1;
     private Subscription timerSubscribe;
+    FieldSize fieldSize = FieldSize.X3_3;
+    GoogleApiClient googleApiClient;
+    private boolean resolvingError = false;
+
+
+
+    @OnClick(R.id.rerun) void onRerunClick(){
+        init();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,17 +116,39 @@ public class PuzzzleActivity extends AppCompatActivity {
         Fabric.with(this, new Crashlytics());
         setContentView(R.layout.activity_puzzzle);
         ButterKnife.bind(this);
+        googleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(Games.API).addScope(Games.SCOPE_GAMES)
+                .build();
         if(savedInstanceState != null){
             photoPath = savedInstanceState.getString(PHOTO_PATH);
             columnCount = savedInstanceState.getInt(COLUMN_COUNT);
             rowCount = savedInstanceState.getInt(ROW_COUNT);
-            turnsCount = savedInstanceState.getInt(TURNS_COUNT);
+            movesCount = savedInstanceState.getInt(TURNS_COUNT);
             savedTime = savedInstanceState.getLong(TIME_IN_SECONDS);
+            fieldSize = (FieldSize) savedInstanceState.getSerializable(FIELD_SIZE);
+            resolvingError = savedInstanceState.getBoolean(RESOLVING_ERROR);
             if(!TextUtils.isEmpty(photoPath)){
                 fullImage.setImageBitmap(BitmapFactory.decodeFile(photoPath));
             }
         } else {
             init();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if(googleApiClient != null  ) {
+            if (!googleApiClient.isConnected()) {
+                googleApiClient.connect();
+            }
         }
     }
 
@@ -130,13 +178,15 @@ public class PuzzzleActivity extends AppCompatActivity {
         outState.putString(PHOTO_PATH, photoPath);
         outState.putInt(COLUMN_COUNT, columnCount);
         outState.putInt(ROW_COUNT, rowCount);
-        outState.putInt(TURNS_COUNT, turnsCount);
+        outState.putInt(TURNS_COUNT, movesCount);
         outState.putLong(TIME_IN_SECONDS, timeInSeconds);
+        outState.putSerializable(FIELD_SIZE, fieldSize);
+        outState.putBoolean(RESOLVING_ERROR, resolvingError);
         super.onSaveInstanceState(outState);
     }
 
     private void init() {
-        turnsCount = 0;
+        movesCount = 0;
         timeInSeconds = 0;
         savedTime = 1;
         if(timerSubscribe != null){
@@ -146,7 +196,7 @@ public class PuzzzleActivity extends AppCompatActivity {
             fullImage.setImageBitmap(BitmapFactory.decodeFile(photoPath));
         }
         setTimeText(timeInSeconds);
-        turnsText.setText(String.format(Locale.getDefault(), "%d", turnsCount));
+        movesText.setText(String.format(Locale.getDefault(), "%d", movesCount));
         showProgressDialog();
         Observable.fromCallable(this::createGame)
                 .subscribeOn(Schedulers.io())
@@ -217,18 +267,22 @@ public class PuzzzleActivity extends AppCompatActivity {
             case R.id.x3x3:
                 columnCount = 3;
                 rowCount = 3;
+                fieldSize = FieldSize.X3_3;
                 break;
             case R.id.x4x4:
                 columnCount = 4;
                 rowCount = 4;
+                fieldSize = FieldSize.X4_4;
                 break;
             case R.id.x5x5:
                 columnCount = 5;
                 rowCount = 5;
+                fieldSize = FieldSize.X5_5;
                 break;
             case R.id.x6x6:
                 columnCount = 6;
                 rowCount = 6;
+                fieldSize = FieldSize.X6_6;
                 break;
             case R.id.add_image:
                 toGetPhotoDialog();
@@ -265,7 +319,7 @@ public class PuzzzleActivity extends AppCompatActivity {
     }
 
     private void incrementAndShowTurnsCount() {
-        turnsText.setText(String.format(Locale.getDefault(), "%d", ++turnsCount));
+        movesText.setText(String.format(Locale.getDefault(), "%d", ++movesCount));
     }
 
     private void doMove(CellView v) {
@@ -279,8 +333,74 @@ public class PuzzzleActivity extends AppCompatActivity {
             new Handler().postDelayed(() -> {
                 clearViewTouch(layout);
                 doFinalAnimation(layout);
+                sendLeadboard(fieldSize, timeInSeconds, movesCount);
             }, OnMoveTouchListener.ANIMATION_DURATION);
         }
+    }
+
+    private void sendLeadboard(FieldSize fieldSize, long timeInSeconds, int movesCount) {
+        String leadboard_time = "";
+        String leadboard_moves = "";
+        String archivement = "";
+        String archivement_time = "";
+        String archivement_moves = "";
+        switch (fieldSize){
+            case X3_3:
+                leadboard_time = getString(R.string.leaderboard_3x3_time);
+                leadboard_moves = getString(R.string.leaderboard_3x3_moves);
+                archivement = getString(R.string.achievement_3x3_mastered);
+                if(timeInSeconds < 30){
+                    archivement_time = getString(R.string.achievement_less_than_0_5_minute);
+                }
+                if (movesCount < 20 ){
+                    archivement_moves = getString(R.string.achievement_less_than_20_moves);
+                }
+                break;
+            case X4_4:
+                leadboard_time = getString(R.string.leaderboard_4x4_time);
+                leadboard_moves = getString(R.string.leaderboard_4x4_moves);
+                archivement = getString(R.string.achievement_4x4_mastered);
+                if(timeInSeconds < 60){
+                    archivement_time = getString(R.string.achievement_less_than_1_minute);
+                }
+                if (movesCount < 100 ){
+                    archivement_moves = getString(R.string.achievement_less_than_100_moves);
+                }
+                break;
+            case X5_5:
+                leadboard_time = getString(R.string.leaderboard_5x5_time);
+                leadboard_moves = getString(R.string.leaderboard_5x5_moves);
+                archivement = getString(R.string.achievement_5x5_mastered);
+                if(timeInSeconds < 3*60){
+                    archivement_time = getString(R.string.achievement_less_than_3_minute);
+                }
+                if (movesCount < 250 ){
+                    archivement_moves = getString(R.string.achievement_less_than_250_moves);
+                }
+                break;
+            case X6_6:
+                leadboard_time = getString(R.string.leaderboard_6x6_time);
+                leadboard_moves = getString(R.string.leaderboard_6x6_moves);
+                archivement = getString(R.string.achievement_6x6_mastered);
+                if(timeInSeconds < 5*60){
+                    archivement_time = getString(R.string.achievement_less_than_5_minute);
+                }
+                if (movesCount < 500 ){
+                    archivement_moves = getString(R.string.achievement_less_than_500_moves);
+                }
+
+                break;
+        }
+        Games.Leaderboards.submitScore(googleApiClient, leadboard_time, timeInSeconds);
+        Games.Leaderboards.submitScore(googleApiClient, leadboard_moves, movesCount);
+        Games.Achievements.unlock(googleApiClient, archivement);
+        if(!TextUtils.isEmpty(archivement_time)){
+            Games.Achievements.unlock(googleApiClient, archivement_time);
+        }
+        if(!TextUtils.isEmpty(archivement_moves)){
+            Games.Achievements.unlock(googleApiClient, archivement_moves);
+        }
+
     }
 
     private boolean isPazzleDone() {
@@ -426,6 +546,82 @@ public class PuzzzleActivity extends AppCompatActivity {
                         photoPath = s;
                         if (photoPath != null) init();
                     }, Throwable::printStackTrace);
+        } else if(requestCode == 2001 && resultCode == Activity.RESULT_OK){
+            resolvingError = false;
+            if (!googleApiClient.isConnecting() &&
+                    !googleApiClient.isConnected()) {
+                googleApiClient.connect();
+            }
+
+            googleApiClient.connect();
         }
     }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        Log.d(TAG, "onConnected() called. Sign in successful!");
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        googleApiClient.connect();
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Log.d(TAG, "onConnectionFailed() called, result: " + connectionResult);
+
+            if (resolvingError) {
+                // Already attempting to resolve an error.
+                //noinspection UnnecessaryReturnStatement
+                return;
+            }else if(connectionResult.hasResolution()) {
+                try {
+                    resolvingError = true;
+                    connectionResult.startResolutionForResult(this, GOOGLE_API_CLIENT_RESOLUTION);
+                } catch (IntentSender.SendIntentException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                showErrorDialog(connectionResult.getErrorCode());
+                resolvingError = true;
+
+            }
+    }
+
+    public void onDialogDismissed() {
+        resolvingError = false;
+    }
+
+
+    private void showErrorDialog(int errorCode) {
+        // Create a fragment for the error dialog
+        ErrorDialogFragment dialogFragment = new ErrorDialogFragment();
+        // Pass the error that should be displayed
+        Bundle args = new Bundle();
+        args.putInt(DIALOG_ERROR, errorCode);
+        dialogFragment.setArguments(args);
+        dialogFragment.show(getSupportFragmentManager(), "error_dialog");
+    }
+
+    public static class ErrorDialogFragment extends DialogFragment {
+        public ErrorDialogFragment() { }
+
+        @NonNull
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            // Get the error code and retrieve the appropriate dialog
+            int errorCode = this.getArguments().getInt(DIALOG_ERROR);
+            return GoogleApiAvailability.getInstance().getErrorDialog(
+                    this.getActivity(), errorCode, GOOGLE_API_CLIENT_RESOLUTION);
+        }
+
+        @Override
+        public void onDismiss(DialogInterface dialog) {
+            ((PuzzzleActivity) getActivity()).onDialogDismissed();
+        }
+    }
+
+
+
 }
