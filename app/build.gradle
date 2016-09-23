@@ -23,7 +23,7 @@ android {
         applicationId "com.eugenekotsogub.puzzzle"
         minSdkVersion 15
         targetSdkVersion 24
-        versionCode 3
+        versionCode 4
         versionName "1.3.1"
     }
     signingConfigs {
