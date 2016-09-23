@@ -15,4 +15,5 @@
     <string name="number_of_moves">Moves count:</string>
     <string name="time">Time:</string>
     <string name="show_hide_numbers">Show/hide numbers</string>
+    <string name="error">Error:</string>
 </resources>

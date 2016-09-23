@@ -2,7 +2,9 @@ package com.eugenekotsogub.puzzzle;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
@@ -12,6 +14,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatImageButton;
@@ -37,6 +40,7 @@ import com.eugenekotsogub.puzzzle.util.ImageUtils;
 import com.eugenekotsogub.puzzzle.util.Permission;
 import com.eugenekotsogub.puzzzle.util.Utils;
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.games.Games;
 
@@ -67,6 +71,9 @@ public class PuzzzleActivity extends AppCompatActivity implements GoogleApiClien
     public static final String TURNS_COUNT = "turns_count";
     public static final String TIME_IN_SECONDS = "time_in_seconds";
     public static final String FIELD_SIZE = "field_size";
+    public static final int GOOGLE_API_CLIENT_RESOLUTION = 2001;
+    public static final String DIALOG_ERROR = "dialog_error";
+    public static final String RESOLVING_ERROR = "resolving_error";
     @BindView(R.id.main_container)
     ViewGroup mainContainer;
 
@@ -94,6 +101,8 @@ public class PuzzzleActivity extends AppCompatActivity implements GoogleApiClien
     private Subscription timerSubscribe;
     FieldSize fieldSize = FieldSize.X3_3;
     GoogleApiClient googleApiClient;
+    private boolean resolvingError = false;
+
 
 
     @OnClick(R.id.rerun) void onRerunClick(){
@@ -119,6 +128,7 @@ public class PuzzzleActivity extends AppCompatActivity implements GoogleApiClien
             movesCount = savedInstanceState.getInt(TURNS_COUNT);
             savedTime = savedInstanceState.getLong(TIME_IN_SECONDS);
             fieldSize = (FieldSize) savedInstanceState.getSerializable(FIELD_SIZE);
+            resolvingError = savedInstanceState.getBoolean(RESOLVING_ERROR);
             if(!TextUtils.isEmpty(photoPath)){
                 fullImage.setImageBitmap(BitmapFactory.decodeFile(photoPath));
             }
@@ -171,6 +181,7 @@ public class PuzzzleActivity extends AppCompatActivity implements GoogleApiClien
         outState.putInt(TURNS_COUNT, movesCount);
         outState.putLong(TIME_IN_SECONDS, timeInSeconds);
         outState.putSerializable(FIELD_SIZE, fieldSize);
+        outState.putBoolean(RESOLVING_ERROR, resolvingError);
         super.onSaveInstanceState(outState);
     }
 
@@ -383,7 +394,6 @@ public class PuzzzleActivity extends AppCompatActivity implements GoogleApiClien
         Games.Leaderboards.submitScore(googleApiClient, leadboard_time, timeInSeconds);
         Games.Leaderboards.submitScore(googleApiClient, leadboard_moves, movesCount);
         Games.Achievements.unlock(googleApiClient, archivement);
-        Games.Achievements.
         if(!TextUtils.isEmpty(archivement_time)){
             Games.Achievements.unlock(googleApiClient, archivement_time);
         }
@@ -537,6 +547,12 @@ public class PuzzzleActivity extends AppCompatActivity implements GoogleApiClien
                         if (photoPath != null) init();
                     }, Throwable::printStackTrace);
         } else if(requestCode == 2001 && resultCode == Activity.RESULT_OK){
+            resolvingError = false;
+            if (!googleApiClient.isConnecting() &&
+                    !googleApiClient.isConnected()) {
+                googleApiClient.connect();
+            }
+
             googleApiClient.connect();
         }
     }
@@ -554,10 +570,58 @@ public class PuzzzleActivity extends AppCompatActivity implements GoogleApiClien
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
         Log.d(TAG, "onConnectionFailed() called, result: " + connectionResult);
-        try {
-            connectionResult.startResolutionForResult(this, 2001);
-        } catch (IntentSender.SendIntentException e) {
-            e.printStackTrace();
+
+            if (resolvingError) {
+                // Already attempting to resolve an error.
+                //noinspection UnnecessaryReturnStatement
+                return;
+            }else if(connectionResult.hasResolution()) {
+                try {
+                    resolvingError = true;
+                    connectionResult.startResolutionForResult(this, GOOGLE_API_CLIENT_RESOLUTION);
+                } catch (IntentSender.SendIntentException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                showErrorDialog(connectionResult.getErrorCode());
+                resolvingError = true;
+
+            }
+    }
+
+    public void onDialogDismissed() {
+        resolvingError = false;
+    }
+
+
+    private void showErrorDialog(int errorCode) {
+        // Create a fragment for the error dialog
+        ErrorDialogFragment dialogFragment = new ErrorDialogFragment();
+        // Pass the error that should be displayed
+        Bundle args = new Bundle();
+        args.putInt(DIALOG_ERROR, errorCode);
+        dialogFragment.setArguments(args);
+        dialogFragment.show(getSupportFragmentManager(), "error_dialog");
+    }
+
+    public static class ErrorDialogFragment extends DialogFragment {
+        public ErrorDialogFragment() { }
+
+        @NonNull
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            // Get the error code and retrieve the appropriate dialog
+            int errorCode = this.getArguments().getInt(DIALOG_ERROR);
+            return GoogleApiAvailability.getInstance().getErrorDialog(
+                    this.getActivity(), errorCode, GOOGLE_API_CLIENT_RESOLUTION);
+        }
+
+        @Override
+        public void onDismiss(DialogInterface dialog) {
+            ((PuzzzleActivity) getActivity()).onDialogDismissed();
         }
     }
+
+
+
 }
