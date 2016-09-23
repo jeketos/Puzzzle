@@ -15,14 +15,14 @@
 
     <TextView
         android:id="@+id/turns_title"
-        android:text="@string/number_of_turns"
+        android:text="@string/number_of_moves"
         android:textSize="18sp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"/>
     <TextView
-        android:id="@+id/turns_count"
+        android:id="@+id/moves_count"
         tools:text="0"
         android:textSize="18sp"
         android:layout_width="wrap_content"

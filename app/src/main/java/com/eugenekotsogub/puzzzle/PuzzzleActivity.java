@@ -72,8 +72,8 @@ public class PuzzzleActivity extends AppCompatActivity implements GoogleApiClien
 
     @BindView(R.id.grid_layout)
     GridLayout layout;
-    @BindView(R.id.turns_count)
-    TextView turnsText;
+    @BindView(R.id.moves_count)
+    TextView movesText;
     @BindView(R.id.time_text)
     TextView timeText;
     @BindView(R.id.show_image)
@@ -88,7 +88,7 @@ public class PuzzzleActivity extends AppCompatActivity implements GoogleApiClien
     private String toCameraPath;
     private String photoPath;
     public static  int ITEM_MARGIN = 2;
-    private int turnsCount = 0;
+    private int movesCount = 0;
     private long timeInSeconds = 0;
     private long savedTime = 1;
     private Subscription timerSubscribe;
@@ -116,7 +116,7 @@ public class PuzzzleActivity extends AppCompatActivity implements GoogleApiClien
             photoPath = savedInstanceState.getString(PHOTO_PATH);
             columnCount = savedInstanceState.getInt(COLUMN_COUNT);
             rowCount = savedInstanceState.getInt(ROW_COUNT);
-            turnsCount = savedInstanceState.getInt(TURNS_COUNT);
+            movesCount = savedInstanceState.getInt(TURNS_COUNT);
             savedTime = savedInstanceState.getLong(TIME_IN_SECONDS);
             fieldSize = (FieldSize) savedInstanceState.getSerializable(FIELD_SIZE);
             if(!TextUtils.isEmpty(photoPath)){
@@ -168,14 +168,14 @@ public class PuzzzleActivity extends AppCompatActivity implements GoogleApiClien
         outState.putString(PHOTO_PATH, photoPath);
         outState.putInt(COLUMN_COUNT, columnCount);
         outState.putInt(ROW_COUNT, rowCount);
-        outState.putInt(TURNS_COUNT, turnsCount);
+        outState.putInt(TURNS_COUNT, movesCount);
         outState.putLong(TIME_IN_SECONDS, timeInSeconds);
         outState.putSerializable(FIELD_SIZE, fieldSize);
         super.onSaveInstanceState(outState);
     }
 
     private void init() {
-        turnsCount = 0;
+        movesCount = 0;
         timeInSeconds = 0;
         savedTime = 1;
         if(timerSubscribe != null){
@@ -185,7 +185,7 @@ public class PuzzzleActivity extends AppCompatActivity implements GoogleApiClien
             fullImage.setImageBitmap(BitmapFactory.decodeFile(photoPath));
         }
         setTimeText(timeInSeconds);
-        turnsText.setText(String.format(Locale.getDefault(), "%d", turnsCount));
+        movesText.setText(String.format(Locale.getDefault(), "%d", movesCount));
         showProgressDialog();
         Observable.fromCallable(this::createGame)
                 .subscribeOn(Schedulers.io())
@@ -308,7 +308,7 @@ public class PuzzzleActivity extends AppCompatActivity implements GoogleApiClien
     }
 
     private void incrementAndShowTurnsCount() {
-        turnsText.setText(String.format(Locale.getDefault(), "%d", ++turnsCount));
+        movesText.setText(String.format(Locale.getDefault(), "%d", ++movesCount));
     }
 
     private void doMove(CellView v) {
@@ -322,37 +322,74 @@ public class PuzzzleActivity extends AppCompatActivity implements GoogleApiClien
             new Handler().postDelayed(() -> {
                 clearViewTouch(layout);
                 doFinalAnimation(layout);
-                sendLeadboard(fieldSize, timeInSeconds);
+                sendLeadboard(fieldSize, timeInSeconds, movesCount);
             }, OnMoveTouchListener.ANIMATION_DURATION);
         }
     }
 
-    private void sendLeadboard(FieldSize fieldSize, long timeInSeconds) {
-        String leadboard = "";
+    private void sendLeadboard(FieldSize fieldSize, long timeInSeconds, int movesCount) {
+        String leadboard_time = "";
+        String leadboard_moves = "";
         String archivement = "";
+        String archivement_time = "";
+        String archivement_moves = "";
         switch (fieldSize){
             case X3_3:
-                leadboard = getString(R.string.leaderboard_3x3);
+                leadboard_time = getString(R.string.leaderboard_3x3_time);
+                leadboard_moves = getString(R.string.leaderboard_3x3_moves);
                 archivement = getString(R.string.achievement_3x3_mastered);
-                break;
-            case X4_4:
-                leadboard = getString(R.string.leaderboard_4x4);
-                archivement = getString(R.string.achievement_4x4_mastered);
-                break;
-            case X5_5:
-                leadboard = getString(R.string.leaderboard_5x5);
-                archivement = getString(R.string.achievement_5x5_mastered);
-                break;
-            case X6_6:
-                leadboard = getString(R.string.leaderboard_6x6);
-                archivement = getString(R.string.achievement_6x6_mastered);
-                if(timeInSeconds < 5*60){
-                    Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_less_than_5));
+                if(timeInSeconds < 30){
+                    archivement_time = getString(R.string.achievement_less_than_0_5_minute);
+                }
+                if (movesCount < 20 ){
+                    archivement_moves = getString(R.string.achievement_less_than_20_moves);
                 }
                 break;
+            case X4_4:
+                leadboard_time = getString(R.string.leaderboard_4x4_time);
+                leadboard_moves = getString(R.string.leaderboard_4x4_moves);
+                archivement = getString(R.string.achievement_4x4_mastered);
+                if(timeInSeconds < 60){
+                    archivement_time = getString(R.string.achievement_less_than_1_minute);
+                }
+                if (movesCount < 100 ){
+                    archivement_moves = getString(R.string.achievement_less_than_100_moves);
+                }
+                break;
+            case X5_5:
+                leadboard_time = getString(R.string.leaderboard_5x5_time);
+                leadboard_moves = getString(R.string.leaderboard_5x5_moves);
+                archivement = getString(R.string.achievement_5x5_mastered);
+                if(timeInSeconds < 3*60){
+                    archivement_time = getString(R.string.achievement_less_than_3_minute);
+                }
+                if (movesCount < 250 ){
+                    archivement_moves = getString(R.string.achievement_less_than_250_moves);
+                }
+                break;
+            case X6_6:
+                leadboard_time = getString(R.string.leaderboard_6x6_time);
+                leadboard_moves = getString(R.string.leaderboard_6x6_moves);
+                archivement = getString(R.string.achievement_6x6_mastered);
+                if(timeInSeconds < 5*60){
+                    archivement_time = getString(R.string.achievement_less_than_5_minute);
+                }
+                if (movesCount < 500 ){
+                    archivement_moves = getString(R.string.achievement_less_than_500_moves);
+                }
+
+                break;
         }
-        Games.Leaderboards.submitScore(googleApiClient, leadboard, timeInSeconds);
+        Games.Leaderboards.submitScore(googleApiClient, leadboard_time, timeInSeconds);
+        Games.Leaderboards.submitScore(googleApiClient, leadboard_moves, movesCount);
         Games.Achievements.unlock(googleApiClient, archivement);
+        Games.Achievements.
+        if(!TextUtils.isEmpty(archivement_time)){
+            Games.Achievements.unlock(googleApiClient, archivement_time);
+        }
+        if(!TextUtils.isEmpty(archivement_moves)){
+            Games.Achievements.unlock(googleApiClient, archivement_moves);
+        }
 
     }
 

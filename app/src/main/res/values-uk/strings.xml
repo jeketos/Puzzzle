@@ -9,7 +9,7 @@
     <string name="permission_read_denied">Доступ до читання з внутрішнього накопичувача заборонен</string>
     <string name="permission_camera_denied">Доступ до камери заборонен</string>
     <string name="show_image">Показати картинку</string>
-    <string name="number_of_turns">Кількість ходів:</string>
+    <string name="number_of_moves">Кількість ходів:</string>
     <string name="time">Час:</string>
     <string name="show_hide_numbers">Показати/сховати цифри</string>
 </resources>
