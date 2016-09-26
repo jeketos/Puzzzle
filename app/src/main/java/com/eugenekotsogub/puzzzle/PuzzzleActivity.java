@@ -116,11 +116,7 @@ public class PuzzzleActivity extends AppCompatActivity implements GoogleApiClien
         Fabric.with(this, new Crashlytics());
         setContentView(R.layout.activity_puzzzle);
         ButterKnife.bind(this);
-        googleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(Games.API).addScope(Games.SCOPE_GAMES)
-                .build();
+        buildGoogleApiClient();
         if(savedInstanceState != null){
             photoPath = savedInstanceState.getString(PHOTO_PATH);
             columnCount = savedInstanceState.getInt(COLUMN_COUNT);
@@ -137,6 +133,15 @@ public class PuzzzleActivity extends AppCompatActivity implements GoogleApiClien
         }
     }
 
+    private void buildGoogleApiClient() {
+        googleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .enableAutoManage(this, this)
+                .addApi(Games.API).addScope(Games.SCOPE_GAMES)
+                .build();
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -149,6 +154,9 @@ public class PuzzzleActivity extends AppCompatActivity implements GoogleApiClien
             if (!googleApiClient.isConnected()) {
                 googleApiClient.connect();
             }
+        } else {
+            buildGoogleApiClient();
+            googleApiClient.connect();
         }
     }
 
@@ -391,14 +399,16 @@ public class PuzzzleActivity extends AppCompatActivity implements GoogleApiClien
 
                 break;
         }
-        Games.Leaderboards.submitScore(googleApiClient, leadboard_time, timeInSeconds);
-        Games.Leaderboards.submitScore(googleApiClient, leadboard_moves, movesCount);
-        Games.Achievements.unlock(googleApiClient, archivement);
-        if(!TextUtils.isEmpty(archivement_time)){
-            Games.Achievements.unlock(googleApiClient, archivement_time);
-        }
-        if(!TextUtils.isEmpty(archivement_moves)){
-            Games.Achievements.unlock(googleApiClient, archivement_moves);
+        if(googleApiClient.isConnected()) {
+            Games.Leaderboards.submitScore(googleApiClient, leadboard_time, timeInSeconds);
+            Games.Leaderboards.submitScore(googleApiClient, leadboard_moves, movesCount);
+            Games.Achievements.unlock(googleApiClient, archivement);
+            if (!TextUtils.isEmpty(archivement_time)) {
+                Games.Achievements.unlock(googleApiClient, archivement_time);
+            }
+            if (!TextUtils.isEmpty(archivement_moves)) {
+                Games.Achievements.unlock(googleApiClient, archivement_moves);
+            }
         }
 
     }
