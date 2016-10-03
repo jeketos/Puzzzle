@@ -102,7 +102,7 @@ public class PuzzzleActivity extends AppCompatActivity implements GoogleApiClien
     FieldSize fieldSize = FieldSize.X3_3;
     GoogleApiClient googleApiClient;
     private boolean resolvingError = false;
-
+    private boolean lastChance = true;
 
 
     @OnClick(R.id.rerun) void onRerunClick(){
@@ -125,6 +125,7 @@ public class PuzzzleActivity extends AppCompatActivity implements GoogleApiClien
             savedTime = savedInstanceState.getLong(TIME_IN_SECONDS);
             fieldSize = (FieldSize) savedInstanceState.getSerializable(FIELD_SIZE);
             resolvingError = savedInstanceState.getBoolean(RESOLVING_ERROR);
+            lastChance = savedInstanceState.getBoolean("last_chance");
             if(!TextUtils.isEmpty(photoPath)){
                 fullImage.setImageBitmap(BitmapFactory.decodeFile(photoPath));
             }
@@ -152,10 +153,12 @@ public class PuzzzleActivity extends AppCompatActivity implements GoogleApiClien
         super.onStart();
         if(googleApiClient != null  ) {
             if (!googleApiClient.isConnected()) {
+                Log.d(TAG,"connect ApiClient");
                 googleApiClient.connect();
             }
         } else {
             buildGoogleApiClient();
+            Log.d(TAG,"connect ApiClient");
             googleApiClient.connect();
         }
     }
@@ -167,6 +170,7 @@ public class PuzzzleActivity extends AppCompatActivity implements GoogleApiClien
             timerSubscribe.unsubscribe();
         }
         if(googleApiClient != null  ) {
+            Log.d(TAG," disconnect ApiClient");
             googleApiClient.disconnect();
         }
     }
@@ -193,6 +197,7 @@ public class PuzzzleActivity extends AppCompatActivity implements GoogleApiClien
         outState.putLong(TIME_IN_SECONDS, timeInSeconds);
         outState.putSerializable(FIELD_SIZE, fieldSize);
         outState.putBoolean(RESOLVING_ERROR, resolvingError);
+        outState.putBoolean("last_chance", lastChance);
         super.onSaveInstanceState(outState);
     }
 
@@ -402,7 +407,7 @@ public class PuzzzleActivity extends AppCompatActivity implements GoogleApiClien
 
                 break;
         }
-//        if(googleApiClient.isConnected()) {
+        if(googleApiClient.isConnected()) {
             Games.Leaderboards.submitScore(googleApiClient, leadboard_time, timeInSeconds);
             Games.Leaderboards.submitScore(googleApiClient, leadboard_moves, movesCount);
             Games.Achievements.unlock(googleApiClient, archivement);
@@ -412,7 +417,7 @@ public class PuzzzleActivity extends AppCompatActivity implements GoogleApiClien
             if (!TextUtils.isEmpty(archivement_moves)) {
                 Games.Achievements.unlock(googleApiClient, archivement_moves);
             }
-//        }
+        }
 
     }
 
@@ -559,14 +564,17 @@ public class PuzzzleActivity extends AppCompatActivity implements GoogleApiClien
                         photoPath = s;
                         if (photoPath != null) init();
                     }, Throwable::printStackTrace);
-        } else if(requestCode == 2001 && resultCode == Activity.RESULT_OK){
-            resolvingError = false;
-            if (!googleApiClient.isConnecting() &&
-                    !googleApiClient.isConnected()) {
+        } else if(requestCode == 2001){
+            if(resultCode != Activity.RESULT_OK && lastChance){
+                lastChance = false;
                 googleApiClient.connect();
+            } else {
+                resolvingError = false;
+                if (!googleApiClient.isConnecting() &&
+                        !googleApiClient.isConnected()) {
+                    googleApiClient.connect();
+                }
             }
-
-            googleApiClient.connect();
         }
     }
 
@@ -577,13 +585,13 @@ public class PuzzzleActivity extends AppCompatActivity implements GoogleApiClien
 
     @Override
     public void onConnectionSuspended(int i) {
+        Log.d(TAG,"connect ApiClient");
         googleApiClient.connect();
     }
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
         Log.d(TAG, "onConnectionFailed() called, result: " + connectionResult);
-
             if (resolvingError) {
                 // Already attempting to resolve an error.
                 //noinspection UnnecessaryReturnStatement
