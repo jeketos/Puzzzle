@@ -7,7 +7,7 @@
     <string translatable="false" name="achievement_5x5_mastered">CgkIkqKGkbsTEAIQBg</string>
     <string translatable="false" name="achievement_6x6_mastered">CgkIkqKGkbsTEAIQCA</string>
     <string translatable="false" name="achievement_less_than_5_minute">CgkIkqKGkbsTEAIQCQ</string>
-    <string translatable="false" name="achievement_less_than_0_5_minute">CgkIkqKGkbsTEAIQCg</string>
+    <string translatable="false" name="achievement_less_than_0.5_minute">CgkIkqKGkbsTEAIQCg</string>
     <string translatable="false" name="achievement_less_than_1_minute">CgkIkqKGkbsTEAIQCw</string>
     <string translatable="false" name="achievement_less_than_3_minute">CgkIkqKGkbsTEAIQDA</string>
     <string translatable="false" name="achievement_win_all">CgkIkqKGkbsTEAIQDQ</string>
