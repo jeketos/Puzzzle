@@ -166,6 +166,9 @@ public class PuzzzleActivity extends AppCompatActivity implements GoogleApiClien
         if(timerSubscribe != null) {
             timerSubscribe.unsubscribe();
         }
+        if(googleApiClient != null  ) {
+            googleApiClient.disconnect();
+        }
     }
 
     private void setOptionsMenuAsAction() {
@@ -399,7 +402,7 @@ public class PuzzzleActivity extends AppCompatActivity implements GoogleApiClien
 
                 break;
         }
-        if(googleApiClient.isConnected()) {
+//        if(googleApiClient.isConnected()) {
             Games.Leaderboards.submitScore(googleApiClient, leadboard_time, timeInSeconds);
             Games.Leaderboards.submitScore(googleApiClient, leadboard_moves, movesCount);
             Games.Achievements.unlock(googleApiClient, archivement);
@@ -409,7 +412,7 @@ public class PuzzzleActivity extends AppCompatActivity implements GoogleApiClien
             if (!TextUtils.isEmpty(archivement_moves)) {
                 Games.Achievements.unlock(googleApiClient, archivement_moves);
             }
-        }
+//        }
 
     }
 
