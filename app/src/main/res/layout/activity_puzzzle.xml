@@ -5,10 +5,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
     android:splitMotionEvents="false"
     tools:context="com.eugenekotsogub.puzzzle.PuzzzleActivity"
     xmlns:app="http://schemas.android.com/apk/res-auto">
@@ -73,12 +71,24 @@
         android:src="@drawable/cat"
         android:layout_alignParentStart="true"/>
 
+    <TextView
+        android:id="@+id/privacyPolicy"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:textColor="@android:color/holo_blue_dark"
+        android:layout_centerHorizontal="true"
+        android:textSize="16sp"
+        android:layout_marginBottom="8dp"
+        android:text="@string/privacy_policy"/>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:layout_alignParentBottom="true"
         android:orientation="horizontal"
-        >
+        android:layout_below="@+id/grid_layout"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true">
         <View
             android:layout_width="0dp"
             android:layout_height="match_parent"

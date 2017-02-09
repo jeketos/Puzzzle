@@ -20,6 +20,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatImageButton;
 import android.support.v7.widget.AppCompatImageView;
 import android.text.TextUtils;
+import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
@@ -89,6 +90,8 @@ public class PuzzzleActivity extends AppCompatActivity implements GoogleApiClien
     AppCompatImageButton showHideNumbers;
     @BindView(R.id.full_image)
     AppCompatImageView fullImage;
+    @BindView(R.id.privacyPolicy)
+    TextView privacyPolicy;
     List<CellView> cells;
     int columnCount = 3, rowCount = 3;
     private ProgressDialog progressDialog;
@@ -107,6 +110,11 @@ public class PuzzzleActivity extends AppCompatActivity implements GoogleApiClien
 
     @OnClick(R.id.rerun) void onRerunClick(){
         init();
+    }
+
+    @OnClick(R.id.privacyPolicy) void onPrivacyClick(){
+        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://docs.google.com/document/d/1wHU2QUogZWkQLS6_jo3DaUnFhWjGhb_2w2oC1NnWcDk/pub"));
+        startActivity(browserIntent);
     }
 
     @Override
@@ -211,6 +219,7 @@ public class PuzzzleActivity extends AppCompatActivity implements GoogleApiClien
         if(!TextUtils.isEmpty(photoPath)){
             fullImage.setImageBitmap(BitmapFactory.decodeFile(photoPath));
         }
+        privacyPolicy.setMovementMethod(LinkMovementMethod.getInstance());
         setTimeText(timeInSeconds);
         movesText.setText(String.format(Locale.getDefault(), "%d", movesCount));
         showProgressDialog();
@@ -345,7 +354,7 @@ public class PuzzzleActivity extends AppCompatActivity implements GoogleApiClien
         Coordinate current = v.getCurrentCoordinate();
         GameView.INSTANCE.setFreeCoordinate(current);
         v.setCurrentCoordinate(freeRow, freeColumn);
-        if (isPazzleDone()) {
+        if (isPuzzleDone()) {
             new Handler().postDelayed(() -> {
                 clearViewTouch(layout);
                 doFinalAnimation(layout);
@@ -357,52 +366,52 @@ public class PuzzzleActivity extends AppCompatActivity implements GoogleApiClien
     private void sendLeadboard(FieldSize fieldSize, long timeInSeconds, int movesCount) {
         String leadboard_time = "";
         String leadboard_moves = "";
-        String archivement = "";
-        String archivement_time = "";
-        String archivement_moves = "";
+        String achievement = "";
+        String achievement_time = "";
+        String achievement_moves = "";
         switch (fieldSize){
             case X3_3:
                 leadboard_time = getString(R.string.leaderboard_3x3_time);
                 leadboard_moves = getString(R.string.leaderboard_3x3_moves);
-                archivement = getString(R.string.achievement_3x3_mastered);
+                achievement = getString(R.string.achievement_3x3_mastered);
                 if(timeInSeconds < 30){
-                    archivement_time = getString(R.string.achievement_less_than_0_5_minute);
+                    achievement_time = getString(R.string.achievement_less_than_0_5_minute);
                 }
                 if (movesCount < 20 ){
-                    archivement_moves = getString(R.string.achievement_less_than_20_moves);
+                    achievement_moves = getString(R.string.achievement_less_than_20_moves);
                 }
                 break;
             case X4_4:
                 leadboard_time = getString(R.string.leaderboard_4x4_time);
                 leadboard_moves = getString(R.string.leaderboard_4x4_moves);
-                archivement = getString(R.string.achievement_4x4_mastered);
+                achievement = getString(R.string.achievement_4x4_mastered);
                 if(timeInSeconds < 60){
-                    archivement_time = getString(R.string.achievement_less_than_1_minute);
+                    achievement_time = getString(R.string.achievement_less_than_1_minute);
                 }
                 if (movesCount < 100 ){
-                    archivement_moves = getString(R.string.achievement_less_than_100_moves);
+                    achievement_moves = getString(R.string.achievement_less_than_100_moves);
                 }
                 break;
             case X5_5:
                 leadboard_time = getString(R.string.leaderboard_5x5_time);
                 leadboard_moves = getString(R.string.leaderboard_5x5_moves);
-                archivement = getString(R.string.achievement_5x5_mastered);
+                achievement = getString(R.string.achievement_5x5_mastered);
                 if(timeInSeconds < 3*60){
-                    archivement_time = getString(R.string.achievement_less_than_3_minute);
+                    achievement_time = getString(R.string.achievement_less_than_3_minute);
                 }
                 if (movesCount < 250 ){
-                    archivement_moves = getString(R.string.achievement_less_than_250_moves);
+                    achievement_moves = getString(R.string.achievement_less_than_250_moves);
                 }
                 break;
             case X6_6:
                 leadboard_time = getString(R.string.leaderboard_6x6_time);
                 leadboard_moves = getString(R.string.leaderboard_6x6_moves);
-                archivement = getString(R.string.achievement_6x6_mastered);
+                achievement = getString(R.string.achievement_6x6_mastered);
                 if(timeInSeconds < 5*60){
-                    archivement_time = getString(R.string.achievement_less_than_5_minute);
+                    achievement_time = getString(R.string.achievement_less_than_5_minute);
                 }
                 if (movesCount < 500 ){
-                    archivement_moves = getString(R.string.achievement_less_than_500_moves);
+                    achievement_moves = getString(R.string.achievement_less_than_500_moves);
                 }
 
                 break;
@@ -410,18 +419,18 @@ public class PuzzzleActivity extends AppCompatActivity implements GoogleApiClien
         if(googleApiClient.isConnected()) {
             Games.Leaderboards.submitScore(googleApiClient, leadboard_time, timeInSeconds);
             Games.Leaderboards.submitScore(googleApiClient, leadboard_moves, movesCount);
-            Games.Achievements.unlock(googleApiClient, archivement);
-            if (!TextUtils.isEmpty(archivement_time)) {
-                Games.Achievements.unlock(googleApiClient, archivement_time);
+            Games.Achievements.unlock(googleApiClient, achievement);
+            if (!TextUtils.isEmpty(achievement_time)) {
+                Games.Achievements.unlock(googleApiClient, achievement_time);
             }
-            if (!TextUtils.isEmpty(archivement_moves)) {
-                Games.Achievements.unlock(googleApiClient, archivement_moves);
+            if (!TextUtils.isEmpty(achievement_moves)) {
+                Games.Achievements.unlock(googleApiClient, achievement_moves);
             }
         }
 
     }
 
-    private boolean isPazzleDone() {
+    private boolean isPuzzleDone() {
         for(CellView view : cells){
             if(!view.getCurrentCoordinate().equals(view.getAnchorCoordinate())){
                 return false;
